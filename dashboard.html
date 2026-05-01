@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ff7e67">
+    <title>Moje Konto - Psie Breloki</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const savedTheme = localStorage.getItem('appTheme') || 'orange';
+        if (savedTheme !== 'orange') {
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+    </script>
+</head>
+<body>
+    
+    <div id="loader" class="loader-container">
+        <div class="paw-loader"><i class="fa-solid fa-paw"></i></div>
+    </div>
+
+    <div id="app" class="app-container dashboard-container hidden">
+        <div class="dashboard-header">
+            <div class="header-titles">
+                <h2 class="forum-header-title">Moje Konto</h2>
+                <p class="forum-header-subtitle"><span id="userEmailDisplay">...</span></p>
+            </div>
+            <a href="#" id="logoutBtn" class="logout-dash-btn" title="Wyloguj"><i class="fa-solid fa-right-from-bracket"></i></a>
+        </div>
+
+        <div class="dashboard-content">
+            <h3 class="dashboard-section-title"><i class="fa-solid fa-paw"></i> Twoje przypisane breloki</h3>
+            
+            <div id="petsList" class="pets-grid">
+                <!-- JS Content -->
+            </div>
+
+            <div id="noPetsState" class="empty-state hidden">
+                <i class="fa-solid fa-shield-dog empty-icon"></i>
+                <p>Nie masz jeszcze przypisanych pupili.</p>
+                <button class="btn-action w-100 assign-nfc-btn" style="margin-top: 1rem;"><i class="fa-solid fa-qrcode"></i> Przypisz nowy brelok</button>
+            </div>
+
+            <button id="addAnotherPetBtn" class="btn-action w-100 assign-nfc-btn hidden" style="margin-top: 1.5rem;"><i class="fa-solid fa-qrcode"></i> Przypisz kolejny brelok</button>
+            
+            <a href="forum.html" class="btn-outline w-100" style="margin-top: 1rem; justify-content: center;"><i class="fa-solid fa-comments"></i> Forum Zwierzaków</a>
+        </div>
+    </div>
+
+    <!-- NFC Scanner Modal -->
+    <div id="nfcModalOverlay" class="color-modal-overlay">
+        <div class="color-modal" style="text-align: center; padding: 2.5rem 1.5rem;">
+            <div class="radar-container">
+                <div class="radar-circle"></div>
+                <div class="radar-circle delay-1"></div>
+                <div class="radar-circle delay-2"></div>
+                <i class="fa-solid fa-mobile-screen radar-icon"></i>
+            </div>
+            <h3 style="margin-top: 2rem; margin-bottom: 0.5rem; font-size: 1.3rem;">Skanowanie NFC</h3>
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">Zbliż przypinany brelok do tylnej części telefonu...</p>
+            <button id="cancelNfcBtn" class="modal-close w-100">ANULUJ</button>
+        </div>
+    </div>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>

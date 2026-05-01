@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
+    <title>Forum - Psie Breloki</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <!-- Supabase Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const savedTheme = localStorage.getItem('appTheme') || 'orange';
+        if (savedTheme !== 'orange') {
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+    </script>
+</head>
+<body>
+    
+    <!-- Loader before data loads -->
+    <div id="loader" class="loader-container">
+        <div class="paw-loader"><i class="fa-solid fa-paw"></i></div>
+    </div>
+
+    <div id="app" class="app-container forum-container hidden">
+        <div class="forum-header">
+            <a href="index.html" class="forum-back-btn" id="backBtn"><i class="fa-solid fa-arrow-left"></i></a>
+            <div class="forum-header-info">
+                <h2 class="forum-header-title">Psie Forum</h2>
+                <p class="forum-header-subtitle">Piszesz jako: <span id="currentDogName">Ładowanie...</span></p>
+            </div>
+            <div class="forum-header-actions">
+                <a href="#" id="settingsBtn" class="forum-settings-btn" title="Ustawienia konta"><i class="fa-solid fa-gear"></i></a>
+                <a href="#" id="logoutBtn" class="forum-logout-btn" title="Wyloguj ze swojego konta"><i class="fa-solid fa-right-from-bracket"></i></a>
+            </div>
+        </div>
+
+        <div class="forum-messages" id="messagesContainer">
+            <div class="chat-info-pill">
+                <i class="fa-regular fa-clock"></i> Wiadomości są czyszczone codziennie o 00:00
+            </div>
+        </div>
+
+        <div class="forum-bottom-wrapper">
+            <!-- Emoji bar (hidden by default) -->
+            <div id="emojiBar" class="emoji-bar hidden">
+                <span class="emoji-btn">🐶</span>
+                <span class="emoji-btn">❤️</span>
+                <span class="emoji-btn">🦴</span>
+                <span class="emoji-btn">🐾</span>
+                <span class="emoji-btn">😂</span>
+                <span class="emoji-btn">👋</span>
+                <span class="emoji-btn">🐕</span>
+                <span class="emoji-btn">🥺</span>
+            </div>
+
+            <!-- Options menu (hidden by default) -->
+            <div id="optionsMenu" class="options-menu hidden">
+                <button id="optImageBtn" class="option-btn">
+                    <div class="opt-icon"><i class="fa-solid fa-image"></i></div>
+                    <span>Wyślij zdjęcie</span>
+                </button>
+                <button id="optProfileBtn" class="option-btn">
+                    <div class="opt-icon"><i class="fa-solid fa-id-card"></i></div>
+                    <span>Udostępnij mój profil</span>
+                </button>
+                <button id="optEmojiBtn" class="option-btn">
+                    <div class="opt-icon"><i class="fa-solid fa-face-smile"></i></div>
+                    <span>Szybkie emotki</span>
+                </button>
+            </div>
+
+            <div class="forum-input-area">
+                <input type="file" id="imageInput" accept="image/*" style="display:none;">
+                <button id="moreOptionsBtn" class="forum-image-btn" type="button" aria-label="Więcej opcji">
+                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                </button>
+                <input type="text" id="messageInput" class="forum-input" placeholder="Napisz wiadomość (hau hau)..." autocomplete="off">
+                <button id="sendBtn" class="forum-send-btn" aria-label="Wyślij">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal ustawień parowania -->
+    <div id="settingsModal" class="settings-modal-overlay hidden">
+        <div class="settings-modal">
+            <div class="settings-modal-header">
+                <h3><i class="fa-solid fa-gear"></i> Ustawienia konta</h3>
+                <button id="closeSettingsBtn" class="settings-close-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- Wybór motywu -->
+            <div class="settings-section" style="border-bottom: 1px solid rgba(0,0,0,0.08); padding-bottom: 1.2rem; margin-bottom: 0.5rem;">
+                <h4><i class="fa-solid fa-palette"></i> Kolor chatu</h4>
+                <div class="color-grid" id="forumColorGrid" style="margin-top: 0.8rem; justify-content: center;">
+                    <div class="color-circle c-orange" data-color="orange" title="Pomarańczowy"></div>
+                    <div class="color-circle c-blue" data-color="blue" title="Niebieski"></div>
+                    <div class="color-circle c-green" data-color="green" title="Zielony"></div>
+                    <div class="color-circle c-pink" data-color="pink" title="Różowy"></div>
+                    <div class="color-circle c-red" data-color="red" title="Czerwony"></div>
+                    <div class="color-circle c-purple" data-color="purple" title="Fioletowy"></div>
+                    <div class="color-circle c-gray" data-color="gray" title="Szary"></div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h4><i class="fa-solid fa-paw"></i> Sparowany pupil</h4>
+                <div id="petStatusBox" class="pet-status-box">
+                    <div class="pet-status-loading"><i class="fa-solid fa-spinner fa-spin"></i> Sprawdzanie...</div>
+                </div>
+
+                <!-- Widok: brak parowania -->
+                <div id="noPetView" class="hidden">
+                    <p class="settings-hint">Nie masz jeszcze przypisanego pupila. Zbliż brelok NFC lub wpisz ID ręcznie.</p>
+                    <div id="settingsNfcArea" class="nfc-scan-area hidden" style="margin-bottom:0.5rem;">
+                        <button type="button" id="settingsNfcBtn" class="btn-nfc">
+                            <i class="fa-solid fa-wifi fa-rotate-90"></i> Zbliż brelok NFC
+                        </button>
+                    </div>
+                    <div class="pet-id-pair-row">
+                        <input type="text" id="settingsPetId" class="forum-input" placeholder="Wpisz ID pupila (np. 2)" style="border-radius:12px;">
+                        <button id="pairBtn" class="btn-action btn-message" style="white-space:nowrap; padding: 0.7rem 1rem;">
+                            <i class="fa-solid fa-link"></i> Sparuj
+                        </button>
+                    </div>
+                    <div id="pairError" class="auth-error hidden" style="margin-top:0.5rem;"></div>
+                </div>
+
+                <!-- Widok: lista sparowanych zwierząt -->
+                <div id="hasPetView" class="hidden">
+                    <div id="pairedPetsList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="forum.js"></script>
+</body>
+</html>

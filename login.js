@@ -1,0 +1,152 @@
+// --- Konfiguracja Supabase ---
+const SUPABASE_URL = 'https://alncaeqazzasaspmlxsj.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_pJ30AqPhX_majQPU94l2qQ_6uBAQE64';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// -----------------------------
+
+
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const redirectId = urlParams.get('redirectId') || '12345';
+    const source = urlParams.get('source') || 'dashboard';
+
+    // Jeśli zalogowany – przekieruj od razu
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (session) {
+        if (source === 'profile') {
+            window.location.href = `index.html?id=${redirectId}`;
+        } else {
+            window.location.href = `dashboard.html`;
+        }
+        return;
+    }
+
+    const loginForm       = document.getElementById('loginForm');
+    const authTabs        = document.querySelectorAll('.auth-tab');
+    const displayNameGroup= document.getElementById('displayNameGroup');
+    const submitBtn       = document.getElementById('submitBtn');
+    const subtitle        = document.getElementById('subtitle');
+    const errorMsg        = document.getElementById('errorMsg');
+    const successMsg      = document.getElementById('successMsg');
+    const loadingIndicator= document.getElementById('loadingIndicator');
+
+    let currentMode = 'login';
+
+
+
+    // --- Zakładki Login / Rejestracja ---
+    authTabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            e.preventDefault();
+            authTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            currentMode = tab.getAttribute('data-mode');
+            errorMsg.classList.add('hidden');
+            successMsg.classList.add('hidden');
+
+            if (currentMode === 'login') {
+                displayNameGroup.classList.add('hidden');
+                submitBtn.innerHTML = 'Zaloguj się <i class="fa-solid fa-arrow-right"></i>';
+                subtitle.textContent = 'Zaloguj się, aby zarządzać brelokami';
+            } else {
+                displayNameGroup.classList.remove('hidden');
+                submitBtn.innerHTML = 'Zarejestruj się <i class="fa-solid fa-arrow-right"></i>';
+                subtitle.textContent = 'Stwórz nowe konto';
+            }
+        });
+    });
+
+    // --- Formularz submit ---
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const email       = document.getElementById('email').value.trim();
+        const password    = document.getElementById('password').value.trim();
+        const displayName = document.getElementById('displayName').value.trim();
+
+        if (!email || !password) return;
+
+        submitBtn.classList.add('hidden');
+        loadingIndicator.classList.remove('hidden');
+        errorMsg.classList.add('hidden');
+        successMsg.classList.add('hidden');
+
+        try {
+            if (currentMode === 'register') {
+                // --- REJESTRACJA ---
+
+                const { data, error } = await supabaseClient.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: {
+                            display_name: displayName || email.split('@')[0]
+                        }
+                    }
+                });
+
+                if (error) throw error;
+
+                if (data.session) {
+                    if (source === 'profile') {
+                        window.location.href = `index.html?id=${redirectId}`;
+                    } else {
+                        window.location.href = `dashboard.html`;
+                    }
+                } else {
+                    successMsg.textContent = 'Rejestracja udana! Sprawdź swoją skrzynkę e-mail i kliknij link weryfikacyjny.';
+                    successMsg.classList.remove('hidden');
+
+                    // Animacja confetti (psie łapki) na sukces
+                    for (let i = 0; i < 40; i++) {
+                        const paw = document.createElement('i');
+                        paw.className = 'fa-solid fa-paw paw-confetti';
+                        paw.style.setProperty('--startX', (Math.random() * window.innerWidth) + 'px');
+                        paw.style.setProperty('--endX', (Math.random() * window.innerWidth) + 'px');
+                        paw.style.setProperty('--rot', (Math.random() * 360) + 'deg');
+                        paw.style.setProperty('--duration', (1.5 + Math.random() * 2) + 's');
+                        paw.style.left = '0';
+                        document.body.appendChild(paw);
+                        setTimeout(() => paw.remove(), 4000);
+                    }
+                }
+
+            } else {
+                // --- LOGOWANIE ---
+                const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+                if (source === 'profile') {
+                    window.location.href = `index.html?id=${redirectId}`;
+                } else {
+                    window.location.href = `dashboard.html`;
+                }
+            }
+
+        } catch (error) {
+            console.error("Auth Error:", error);
+            let msg = error.message || 'Wystąpił błąd. Spróbuj ponownie.';
+            if (error.message.includes('Invalid login credentials')) {
+                msg = 'Nieprawidłowy e-mail lub hasło.';
+            } else if (error.message.includes('User already registered')) {
+                msg = 'Konto z tym e-mailem już istnieje. Zaloguj się.';
+            } else if (error.message.includes('Password should be at least')) {
+                msg = 'Hasło musi mieć co najmniej 6 znaków.';
+            }
+            errorMsg.textContent = msg;
+            errorMsg.classList.remove('hidden');
+        } finally {
+            submitBtn.classList.remove('hidden');
+            loadingIndicator.classList.add('hidden');
+        }
+    });
+});
+
+// --- Rejestracja PWA Service Workera ---
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(err => {
+            console.log('ServiceWorker registration failed: ', err);
+        });
+    });
+}

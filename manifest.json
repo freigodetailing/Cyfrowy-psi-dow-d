@@ -1,0 +1,16 @@
+{
+    "name": "Psie Breloki",
+    "short_name": "Breloki",
+    "description": "Cyfrowe Profile Psów NFC i Forum",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#fbfbfd",
+    "theme_color": "#ff7e67",
+    "icons": [
+        {
+            "src": "profil aplikacji.png",
+            "sizes": "192x192 512x512",
+            "type": "image/png"
+        }
+    ]
+}

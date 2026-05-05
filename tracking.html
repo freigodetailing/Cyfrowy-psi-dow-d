@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ff7e67">
+    <title>Śledzenie Pupila - Cyfrowy dowód pupila</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+    
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const savedTheme = localStorage.getItem('appTheme') || 'orange';
+        if (savedTheme !== 'orange') {
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+    </script>
+    <style>
+        .map-toast {
+            position: fixed;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: rgba(231, 76, 60, 0.9);
+            color: white;
+            padding: 0.8rem 1.2rem;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            z-index: 3000;
+            box-shadow: 0 10px 30px rgba(231, 76, 60, 0.3);
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+            width: 90%;
+            max-width: 350px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .map-toast.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+<body class="tracking-body">
+
+    <div id="loader" class="loader-container">
+        <div class="paw-loader"><i class="fa-solid fa-paw"></i></div>
+    </div>
+
+    <!-- Failsafe: Hide loader after timeout if JS fails -->
+    <script>
+        setTimeout(function() {
+            var loader = document.getElementById('loader');
+            if (loader && !loader.classList.contains('hidden')) {
+                console.warn('Loader fallback triggered');
+                loader.classList.add('hidden');
+            }
+        }, 4500);
+    </script>
+
+    <!-- Tracking Header -->
+    <header class="tracking-header">
+        <button onclick="window.location.href='panel.html'" class="back-btn-circle">
+            <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <div class="tracking-pet-info">
+            <div class="tracking-avatar-container">
+                <img id="petAvatar" src="./photos/podstawa.png" alt="Avatar">
+            </div>
+            <div class="tracking-titles">
+                <h2 id="petName">Ładowanie...</h2>
+                <div id="userGpsStatus" class="gps-status-indicator inactive" onclick="setupUserLocation()" style="cursor: pointer; transition: all 0.2s;">
+                    <i class="fa-solid fa-location-crosshairs"></i> <span>GPS wyłączony</span>
+                </div>
+            </div>
+        </div>
+        <!-- Przycisk pomocy wewnątrz nagłówka -->
+        <button id="openMapTutorialBtn" class="info-btn-circle" title="Instrukcja mapy">
+            <i class="fa-solid fa-circle-info"></i>
+        </button>
+    </header>
+
+    <!-- Map Container -->
+    <div id="map"></div>
+
+    <!-- Location Info Card -->
+    <div class="location-info-card">
+        <div class="info-item">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            <div>
+                <span class="info-label">Ostatnio widziany:</span>
+                <span id="lastSeenTime" class="info-value">Czekam na dane...</span>
+            </div>
+        </div>
+        <div class="info-item">
+            <i class="fa-solid fa-map-location-dot"></i>
+            <div>
+                <span class="info-label">Współrzędne:</span>
+                <span id="coordinates" class="info-value">... , ...</span>
+            </div>
+        </div>
+        <div class="nav-modes" style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+            <button id="navCarBtn" class="btn-outline flex-1" style="justify-content: center; font-size: 0.85rem;">
+                <i class="fa-solid fa-car"></i> Samochodem
+            </button>
+            <button id="navFootBtn" class="btn-action flex-1" style="justify-content: center; font-size: 0.85rem;">
+                <i class="fa-solid fa-person-walking"></i> Pieszo
+            </button>
+        </div>
+        <a id="externalMapsBtn" href="#" target="_blank" class="btn-outline w-100" style="margin-top: 0.8rem; justify-content: center; font-size: 0.8rem; opacity: 0.7;">
+            <i class="fa-solid fa-up-right-from-square"></i> Google Maps (Głosowa)
+        </a>
+    </div>
+
+    <!-- Map Toast Notification -->
+    <div id="mapToast" class="map-toast">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span id="mapToastText">Powiadomienie</span>
+    </div>
+
+    <!-- Nowy, Uproszczony Map Tutorial -->
+    <div id="mapTutorialOverlay" class="color-modal-overlay hidden">
+        <div class="color-modal" style="position: relative; border-radius: 32px !important; padding: 28px !important;">
+            <button class="close-modal" id="closeMapTutorial" style="position: absolute; top: 20px; right: 20px; width: 36px; height: 36px; background: #f0f0f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer;">
+                <i class="fa-solid fa-xmark" style="font-size: 1.2rem; color: #333;"></i>
+            </button>
+
+            <div class="modal-header" style="justify-content: center; margin-bottom: 20px; padding-top: 10px;">
+                <h3 style="text-align: center; font-weight: 800; font-size: 1.4rem;">Jak działa mapa?</h3>
+            </div>
+
+            <div class="modal-body">
+                <p style="text-align: center; color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin-bottom: 25px;">
+                    Mapa aktualizuje się automatycznie, gdy znalazca zeskanuje brelok NFC Twojego pupila.
+                </p>
+
+                <div style="display: flex; flex-direction: column; gap: 20px;">
+                    <!-- Ikona Pupila -->
+                    <div style="display: flex; align-items: center; gap: 18px;">
+                        <div style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0;">
+                            <div class='marker-pin' style="transform: rotate(-45deg) scale(0.9);"><i class='fa-solid fa-paw'></i></div>
+                        </div>
+                        <div style="flex: 1;">
+                            <b style="display: block; font-size: 1rem; margin-bottom: 2px;">Pinezka z łapką</b>
+                            <span style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; display: block;">Dokładne miejsce i godzina ostatniego skanowania breloka.</span>
+                        </div>
+                    </div>
+
+                    <!-- Ikona Użytkownika -->
+                    <div style="display: flex; align-items: center; gap: 18px;">
+                        <div style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <div class="user-marker-ultimate" style="transform: scale(1.3);"></div>
+                        </div>
+                        <div style="flex: 1;">
+                            <b style="display: block; font-size: 1rem; margin-bottom: 2px;">Niebieski punkt</b>
+                            <span style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; display: block;">Twoja aktualna lokalizacja. Pomaga Ci dotrzeć do celu i odnaleźć pupila.</span>
+                        </div>
+                    </div>
+
+                    <!-- Alarm -->
+                    <div style="display: flex; align-items: center; gap: 18px;">
+                        <div style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <div style="width: 32px; height: 32px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px var(--primary-shadow-light);">
+                                <i class="fa-solid fa-exclamation" style="color: white; font-size: 1.1rem;"></i>
+                            </div>
+                        </div>
+                        <div style="flex: 1;">
+                            <b style="display: block; font-size: 1rem; margin-bottom: 2px;">Tryb Alarmu</b>
+                            <span style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; display: block;">Lokalizacja jest czytana tylko, gdy masz włączony status <b>"Zaginiony pupil"</b>.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="tutorialUnderstoodBtn" class="btn-action w-100" style="margin-top: 30px; height: 58px; border-radius: 18px; font-weight: 700; font-size: 1.05rem; justify-content: center; box-shadow: 0 10px 20px rgba(255, 126, 103, 0.2);">Rozumiem</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+    <script src="tracking.js"></script>
+</body>
+</html>

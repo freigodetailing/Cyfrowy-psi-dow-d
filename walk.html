@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ff7e67">
+    <title>Spacer z Pupilem - Cyfrowy dowód pupila</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const savedTheme = localStorage.getItem('appTheme') || 'orange';
+        if (savedTheme !== 'orange') {
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+    </script>
+    <style>
+        .back-btn {
+            width: 44px;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 14px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            transition: all 0.2s;
+        }
+        .back-btn:active {
+            transform: scale(0.9);
+            background: rgba(255, 255, 255, 0.3);
+        }
+        .pet-mini-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+        }
+        .pet-mini-card img {
+            width: 60px;
+            height: 60px;
+            border-radius: 18px;
+            object-fit: cover;
+        }
+        .pet-mini-card h3 {
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin: 0;
+        }
+        .pet-mini-card p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin: 0;
+        }
+        .steps-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 28px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+            border: 1px solid rgba(0,0,0,0.02);
+        }
+        .steps-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.2rem;
+        }
+        .steps-header h3 {
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin: 0;
+        }
+        .step-badge {
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 0.5rem 1rem;
+            border-radius: 14px;
+            font-weight: 800;
+            font-size: 1rem;
+        }
+        .walk-toggle-card {
+            background: #f8f9fa;
+            padding: 1rem 1.2rem;
+            border-radius: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+        .walk-info p {
+            font-weight: 700;
+            margin: 0;
+            font-size: 1.1rem;
+        }
+        #walkDuration {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-family: monospace;
+        }
+        .btn-walk-start {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.4rem;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px var(--primary-shadow);
+        }
+        .btn-walk-stop {
+            background: #2d3436;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .activity-chart {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            height: 100px;
+            padding-top: 10px;
+        }
+        .chart-bar-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            flex: 1;
+            height: 100%;
+        }
+        .chart-value {
+            font-size: 0.6rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+        .chart-bar {
+            width: 25px;
+            background: var(--primary-light);
+            border-radius: 6px 6px 2px 2px;
+            transition: height 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            min-height: 4px;
+        }
+        .chart-bar.current {
+            background: var(--primary);
+        }
+        .chart-day {
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+        
+        /* Multi-pet styles */
+        .multi-pet-container {
+            margin-bottom: 1.5rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+        .section-subtitle {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .other-pets-horizontal {
+            display: flex;
+            gap: 0.8rem;
+            overflow-x: auto;
+            padding: 5px 0 15px 0;
+            scrollbar-width: none;
+        }
+        .other-pets-horizontal::-webkit-scrollbar { display: none; }
+        
+        .pet-chip {
+            background: white;
+            padding: 0.5rem 1rem 0.5rem 0.5rem;
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .pet-chip img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .pet-chip span {
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+        .pet-chip.selected {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            color: var(--primary);
+            box-shadow: 0 4px 15px var(--primary-shadow-light);
+        }
+
+        /* Goal Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+        .modal-overlay.hidden { display: none; }
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 32px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+            animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes modalPop {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .modal-content h3 {
+            margin: 0 0 0.5rem;
+            font-size: 1.3rem;
+            font-weight: 800;
+        }
+        .modal-content p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+        }
+        #goalInput {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 16px;
+            border: 2px solid var(--primary-light);
+            font-size: 1.4rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            outline: none;
+            transition: border-color 0.2s;
+            font-family: inherit;
+        }
+        #goalInput:focus {
+            border-color: var(--primary);
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+        .modal-btn {
+            flex: 1;
+            padding: 1rem;
+            border-radius: 16px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.1s;
+            font-family: inherit;
+        }
+        .modal-btn:active { transform: scale(0.95); }
+        .btn-save {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px var(--primary-shadow);
+        }
+        .btn-cancel {
+            background: #f1f2f6;
+            color: var(--text-dark);
+        }
+    </style>
+</head>
+<body class="bg-light">
+    
+    <div id="loader" class="loader-container">
+        <div class="paw-loader"><i class="fa-solid fa-paw"></i></div>
+    </div>
+
+    <div id="app" class="app-container hidden">
+        <!-- Header -->
+        <header class="dashboard-header" style="padding: 1.5rem 1.5rem 2rem 1.5rem; position: relative; overflow: hidden;">
+            <!-- Decorative paw prints -->
+            <i class="paw fa-solid fa-paw"></i>
+            <i class="paw fa-solid fa-paw"></i>
+            <i class="paw fa-solid fa-paw"></i>
+            <i class="paw fa-solid fa-paw"></i>
+            <i class="paw fa-solid fa-paw"></i>
+            <i class="paw fa-solid fa-paw"></i>
+            
+            <div style="display: flex; align-items: center; gap: 1rem; position: relative; z-index: 2;">
+                <button onclick="goBack()" class="back-btn"><i class="fa-solid fa-chevron-left"></i></button>
+                <div class="header-titles">
+                    <h2 class="forum-header-title">Aktywność</h2>
+                    <p class="forum-header-subtitle">Spacer z pupilem</p>
+                </div>
+            </div>
+        </header>
+
+        <main class="dashboard-content" style="margin-top: -1rem;">
+            <!-- Pet Mini Card -->
+            <div id="petMiniInfo" class="pet-mini-card">
+                <img id="miniPetImg" src="./photos/podstawa.png" alt="Pies">
+                <div class="mini-info">
+                    <h3 id="miniPetName">Ładowanie...</h3>
+                    <p>Główny towarzysz spaceru</p>
+                </div>
+            </div>
+
+            <!-- Multi-Pet Selection Section -->
+            <div id="multiPetSection" class="multi-pet-container hidden">
+                <p class="section-subtitle">Spacerujesz z więcej niż jednym pupilem?</p>
+                <div id="otherPetsList" class="other-pets-horizontal">
+                    <!-- Other pets injected here -->
+                </div>
+            </div>
+
+            <!-- Step Counter Main Card -->
+            <div class="steps-container">
+                <div class="steps-header">
+                    <h3><i class="fa-solid fa-shoe-prints"></i> Dzisiejszy wynik</h3>
+                    <div id="stepCountDisplay" class="step-badge">0 kroków</div>
+                </div>
+                
+                <div class="walk-toggle-card">
+                    <div class="walk-info">
+                        <p id="walkStatus">Gotowy na spacer?</p>
+                        <span id="walkDuration" class="hidden">00:00:00</span>
+                    </div>
+                    <button id="toggleWalkBtn" class="btn-walk-start">
+                        <i class="fa-solid fa-play"></i> Włącz Spacer
+                    </button>
+                </div>
+
+                <div class="activity-chart-container">
+                    <p class="chart-title">Historia tygodniowa</p>
+                    <div id="activityChart" class="activity-chart">
+                        <!-- Bars injected by JS -->
+                    </div>
+                    <p id="stepGoalContainer" style="font-size: 0.85rem; color: var(--text-muted); text-align: center; margin-top: 1.2rem; cursor: pointer; padding: 8px;">
+                        Cel dzienny: <span id="dailyStepGoalVal">10 000</span> kroków <i class="fa-solid fa-pen" style="font-size: 0.75rem; margin-left: 4px; opacity: 0.5;"></i>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tips Card -->
+            <div class="info-item" style="background: white; border-radius: 20px; padding: 1.2rem; margin-top: 1.5rem;">
+                <div class="info-icon health-icon"><i class="fa-solid fa-lightbulb"></i></div>
+                <div class="info-text">
+                    <h3 style="font-size: 1rem; margin-bottom: 0.4rem;">Wskazówka</h3>
+                    <p style="font-size: 1rem; line-height: 1.5;">Regularne spacery wzmacniają więź z psem i dbają o jego kondycję fizyczną oraz psychiczną.</p>
+                </div>
+            </div>
+        </main>
+
+        <footer style="margin-top: 2rem;">
+            <a href="https://dowodpupila.pl" class="footer-link">Cyfrowy Dowód Pupila <i class="fa-solid fa-microchip"></i></a>
+        </footer>
+    </div>
+
+        <!-- Custom Goal Modal -->
+        <div id="goalModal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <div class="info-icon health-icon" style="margin: 0 auto 1rem; width: 60px; height: 60px; font-size: 1.5rem;">
+                    <i class="fa-solid fa-shoe-prints"></i>
+                </div>
+                <h3>Ustaw cel dzienny</h3>
+                <p>Ile kroków planujecie przejść dzisiaj?</p>
+                <input type="number" id="goalInput" placeholder="Np. 10000" min="500" step="500">
+                <div class="modal-buttons">
+                    <button id="closeGoalModal" class="modal-btn btn-cancel">Anuluj</button>
+                    <button id="saveGoalModal" class="modal-btn btn-save">Zapisz cel</button>
+                </div>
+            </div>
+        </div>
+
+        <script src="walk.js"></script>
+    <script>
+        function goBack() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const petId = urlParams.get('id');
+            window.location.href = `index.html?id=${petId}`;
+        }
+    </script>
+</body>
+</html>

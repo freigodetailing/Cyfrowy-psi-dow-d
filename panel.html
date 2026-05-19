@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ff7e67">
+    <title>Moje Konto - Cyfrowy dowód pupila</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css?v=5.0">
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const savedTheme = localStorage.getItem('appTheme') || 'orange';
+        if (savedTheme !== 'orange') {
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+    </script>
+</head>
+<body>
+
+    <!-- Loader -->
+    <div id="loader" class="loader-container">
+        <div class="paw-loader"><i class="fa-solid fa-paw"></i></div>
+    </div>
+
+    <!-- Failsafe -->
+    <script>
+        setTimeout(function() {
+            var loader = document.getElementById('loader');
+            var app = document.getElementById('app');
+            if (loader && !loader.classList.contains('hidden')) {
+                loader.classList.add('hidden');
+                if (app) app.classList.remove('hidden');
+            }
+        }, 4500);
+    </script>
+
+    <div id="app" class="app-container dashboard-container hidden">
+
+        <!-- ============================================
+             STAN: ZALOGOWANY
+        ============================================= -->
+        <div id="loggedInState" class="hidden w-100">
+
+            <!-- Górny header — taki sam gradient jak na profilu -->
+            <div class="dash-header">
+                <!-- Dekoracyjne łapki -->
+                <i class="paw fa-solid fa-paw"></i>
+                <i class="paw fa-solid fa-paw"></i>
+                <i class="paw fa-solid fa-paw"></i>
+                <i class="paw fa-solid fa-paw"></i>
+                <i class="paw fa-solid fa-paw"></i>
+                <i class="paw fa-solid fa-paw"></i>
+
+                <div class="dash-header-content">
+                    <div class="dash-header-text">
+                        <h1 id="dashboardGreeting" class="dash-title">Moje Konto</h1>
+                        <p class="dash-subtitle"><span id="userEmailDisplay" class="user-names-pill">...</span></p>
+                    </div>
+                    <div class="dash-header-actions">
+                        <a href="javascript:void(0)" id="installAppBtn" class="dash-icon-btn" onclick="installPWA()" title="Zainstaluj aplikację" style="display: none;">
+                            <i class="fa-solid fa-download"></i>
+                        </a>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Główna zawartość -->
+            <div class="dash-content">
+
+                <!-- Sekcja z pupilami -->
+                <div class="dash-section">
+                    <h2 class="dash-section-title">
+                        <i class="fa-solid fa-paw"></i>
+                        Twoje breloki
+                    </h2>
+
+                    <!-- Lista pupili -->
+                    <div id="petsList"></div>
+
+                    <!-- Stan pusty -->
+                    <div id="noPetsState" class="dash-empty hidden">
+                        <div class="dash-empty-icon">
+                            <i class="fa-solid fa-shield-dog"></i>
+                        </div>
+                        <h3>Brak pupili</h3>
+                        <p>Nie masz jeszcze żadnego przypisanego breloka. Kup brelok i uzupełnij profil swojego pupila!</p>
+
+                        <div class="dash-steps">
+                            <div class="dash-step">
+                                <div class="dash-step-num">1</div>
+                                <div class="dash-step-text">
+                                    <strong>Kup brelok NFC</strong>
+                                    <span>w naszym sklepie i otrzymaj unikalny kod ID</span>
+                                </div>
+                            </div>
+                            <div class="dash-step">
+                                <div class="dash-step-num">2</div>
+                                <div class="dash-step-text">
+                                    <strong>Wróć i przypisz brelok</strong>
+                                    <span>wpisując kod lub zbliżając brelok do telefonu</span>
+                                </div>
+                            </div>
+                            <div class="dash-step">
+                                <div class="dash-step-num">3</div>
+                                <div class="dash-step-text">
+                                    <strong>Uzupełnij profil pupila</strong>
+                                    <span>i gotowe — brelok jest aktywny!</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <a href="https://dowodpupila.pl" target="_blank" class="btn-action w-100" style="justify-content: center; text-decoration: none; margin-top: 1rem;">
+                            <i class="fa-solid fa-cart-shopping"></i> Kup brelok w sklepie
+                        </a>
+                        <button class="btn-outline w-100 assign-nfc-btn" style="margin-top: 0.7rem; justify-content: center;">
+                            <i class="fa-solid fa-qrcode"></i> Mam już kod ID — przypisz brelok
+                        </button>
+                    </div>
+                </div>
+
+                <footer style="margin-top: 2rem; margin-bottom: -1rem;">
+                    <a href="https://dowodpupila.pl" class="footer-link">Cyfrowy Dowód Pupila <i class="fa-solid fa-microchip"></i></a>
+                </footer>
+
+                <!-- Odsunięcie od dołu, by menu nie zasłaniało -->
+                <div style="height: 100px;"></div>
+
+            </div>
+
+            <!-- Panel Bottom Navigation -->
+            <nav class="bottom-nav-bar" id="panelBottomNav">
+                <a href="#" class="nav-item" id="navShareBtn">
+                    <i class="fa-solid fa-share-nodes"></i>
+                    <span>Poleć nas</span>
+                </a>
+                <a href="https://dowodpupila.pl" target="_blank" class="nav-item">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span>Sklep</span>
+                </a>
+                
+                <!-- Center Main Action Button (Skanuj) -->
+                <div class="nav-item center-item">
+                    <a href="javascript:void(0)" class="center-action-btn assign-nfc-btn" title="Skanuj brelok" aria-label="Skanuj">
+                        <i class="fa-solid fa-qrcode"></i>
+                    </a>
+                    <span>Skanuj</span>
+                </div>
+                
+                <a href="#" class="nav-item" id="navHelpBtn">
+                    <i class="fa-solid fa-circle-question"></i>
+                    <span>Pomoc</span>
+                </a>
+                <a href="#" class="nav-item" id="navSettingsBtn">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Ustawienia</span>
+                </a>
+            </nav>
+
+        </div>
+
+        <!-- ============================================
+             STAN: NIEZALOGOWANY
+        ============================================= -->
+        <div id="loggedOutState" class="hidden w-100">
+            <!-- Curved Header Background -->
+            <div class="header-bg login-bg">
+                <!-- Decorative paw prints -->
+                <i class="paw fa-solid fa-paw"></i>
+                <i class="paw fa-solid fa-paw"></i>
+                <i class="paw fa-solid fa-paw"></i>
+            </div>
+
+            <div class="login-content">
+                <div class="login-card">
+                    <!-- Ikona wystająca z górnej krawędzi karty -->
+                    <div class="login-card-icon">
+                        <i class="fa-solid fa-address-card"></i>
+                    </div>
+
+                    <h2>Cyfrowy Dowód Pupila</h2>
+                    <p class="login-card-sub">Inteligentny brelok NFC z pełnym profilem Twojego pupila.</p>
+
+                    <!-- Siatka cech -->
+                    <div class="features-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem; margin-bottom: 1.8rem; text-align: left;">
+                        <div class="feature-grid-item">
+                            <i class="fa-solid fa-wifi"></i>
+                            <h5>Brelok NFC</h5>
+                            <p>Szybki odczyt telefonu bez baterii i ładowania.</p>
+                        </div>
+                        <div class="feature-grid-item">
+                            <i class="fa-solid fa-map-location-dot"></i>
+                            <h5>Lokalizacja</h5>
+                            <p>Otrzymasz pinezkę z mapą po każdym skanowaniu.</p>
+                        </div>
+                        <div class="feature-grid-item">
+                            <i class="fa-solid fa-bell"></i>
+                            <h5>Tryb Alarmowy</h5>
+                            <p>Aktywuj alarm i natychmiast ostrzeż znalazcę.</p>
+                        </div>
+                        <div class="feature-grid-item">
+                            <i class="fa-solid fa-share-nodes"></i>
+                            <h5>Współdzielenie</h5>
+                            <p>Zarządzaj profilami wspólnie z rodziną.</p>
+                        </div>
+                        <div class="feature-grid-item">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                            <h5>Edycja 24/7</h5>
+                            <p>Aktualizuj dane kontaktowe w sekundę.</p>
+                        </div>
+                        <div class="feature-grid-item">
+                            <i class="fa-solid fa-paw"></i>
+                            <h5>Wiele pupili</h5>
+                            <p>Wszystkie zwierzaki pod jednym kontem.</p>
+                        </div>
+                    </div>
+
+                    <a href="login.html" class="btn-action w-100" style="justify-content: center; text-decoration: none;">
+                        <i class="fa-solid fa-user-plus"></i> Załóż darmowe konto
+                    </a>
+
+                    <p style="margin-top: 1.2rem; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0;">
+                        Masz już konto? <a href="login.html" style="color: var(--primary); font-weight: 700; text-decoration: none;">Zaloguj się</a>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Curved Footer Background -->
+            <div class="login-footer-bg">
+                <i class="paw fa-solid fa-paw" style="bottom: 15px; left: 10%;"></i>
+                <i class="paw fa-solid fa-paw" style="bottom: 35px; right: 25%;"></i>
+                <i class="paw fa-solid fa-paw" style="bottom: 20px; right: 10%;"></i>
+            </div>
+        </div>
+
+    </div><!-- /#app -->
+
+
+    <!-- ============================================
+         MODAL: Ustawienia
+    ============================================= -->
+    <div id="settingsModalOverlay" class="color-modal-overlay">
+        <div class="color-modal">
+            <button id="closeSettingsBtn" class="modal-close-icon"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="modal-title">Ustawienia Konta</h3>
+
+            <!-- Twój profil -->
+            <div class="settings-section">
+                <h4><i class="fa-solid fa-user-pen"></i> Twój Profil</h4>
+                <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                    <input type="text" id="userNameInput" placeholder="Twoje imię">
+                    <button id="saveNameBtn" class="btn-primary-small">Zapisz</button>
+                </div>
+            </div>
+
+            <!-- Motyw -->
+            <div class="settings-section">
+                <h4><i class="fa-solid fa-palette"></i> Motyw kolorystyczny</h4>
+                <div class="color-grid">
+                    <div class="color-circle c-orange" data-color="orange" title="Pomarańczowy"></div>
+                    <div class="color-circle c-blue" data-color="blue" title="Niebieski"></div>
+                    <div class="color-circle c-green" data-color="green" title="Zielony"></div>
+                    <div class="color-circle c-pink" data-color="pink" title="Różowy"></div>
+                    <div class="color-circle c-red" data-color="red" title="Czerwony"></div>
+                    <div class="color-circle c-purple" data-color="purple" title="Fioletowy"></div>
+                    <div class="color-circle c-gray" data-color="gray" title="Szary"></div>
+                </div>
+            </div>
+
+            <!-- Współwłasność -->
+            <div class="settings-section">
+                <h4><i class="fa-solid fa-user-group"></i> Współwłasność</h4>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.4;">
+                    Połącz się z innym właścicielem, aby wspólnie zarządzać pupilami.
+                </p>
+
+                <div id="pairingStatus" class="pairing-status-card hidden">
+                    <div style="display: flex; align-items: center; gap: 0.8rem; flex: 1;">
+                        <i class="fa-solid fa-link" style="color: #2bc06a;"></i>
+                        <span>Połączono z: <strong id="partnerEmail">Partnerem</strong></span>
+                    </div>
+                    <button id="unpairAccountsBtn" class="btn-small-text" style="color: #e74c3c; margin: 0; padding: 5px 10px; background: #fff5f5; border-radius: 8px; border: 1px solid #fadbd8;">Rozłącz</button>
+                </div>
+
+                <div id="pairingActions" class="pairing-actions">
+                    <button id="generatePairingCodeBtn" class="btn-settings-action">
+                        <i class="fa-solid fa-plus"></i> Generuj Kod
+                    </button>
+                    <button id="showPairingInputBtn" class="btn-settings-action">
+                        <i class="fa-solid fa-key"></i> Wpisz Kod
+                    </button>
+                </div>
+
+                <div id="generatedCodeSection" class="generated-code-box hidden">
+                    <p style="font-size: 0.8rem; font-weight: 700; margin-bottom: 0.5rem;">Twój kod (ważny 15 min):</p>
+                    <div class="code-display" id="pairingCodeDisplay">------</div>
+                </div>
+
+                <div id="enterCodeSection" class="enter-code-box hidden">
+                    <input type="text" id="pairingCodeInput" placeholder="Wpisz 6-cyfrowy kod" maxlength="6">
+                    <button id="submitPairingCodeBtn" class="btn-primary-small">Połącz</button>
+                </div>
+            </div>
+
+            <!-- Sesja -->
+            <div class="settings-section auth-section">
+                <h4><i class="fa-solid fa-shield-halved"></i> Sesja</h4>
+                <p class="auth-hint">Jesteś zalogowany jako:</p>
+                <div class="session-email-badge">
+                    <i class="fa-solid fa-envelope"></i>
+                    <span id="modalUserEmail">...</span>
+                </div>
+                <button id="logoutBtn" class="btn-outline w-100"><i class="fa-solid fa-right-from-bracket"></i> Wyloguj się</button>
+            </div>
+
+            <div style="text-align: center; margin-top: 0.5rem;">
+                <button id="deleteAccountBtn" class="btn-small-text">Usuń konto na stałe</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Odepnij konta -->
+    <div id="unpairAccountsModalOverlay" class="color-modal-overlay">
+        <div class="color-modal" style="text-align: center; padding: 2.2rem 1.5rem 1.5rem;">
+            <div class="image-outer-ring" style="width: 80px; height: 80px; background: #fff5f5; border: 3px solid #ffccd2; margin-top: -40px; box-shadow: 0 10px 25px rgba(231, 76, 60, 0.25) !important;">
+                <div class="image-wrapper" style="background: #fff5f5; display: flex; align-items: center; justify-content: center;">
+                    <i class="fa-solid fa-link-slash" style="font-size: 2rem; color: #e74c3c;"></i>
+                </div>
+            </div>
+            <h3 class="modal-title" style="color: #e74c3c;">Rozłączyć konta?</h3>
+            <p style="font-size: 0.95rem; color: var(--text-dark); margin-bottom: 1rem; line-height: 1.4;">
+                Czy na pewno chcesz zakończyć współdzielenie pupili z tym użytkownikiem?
+            </p>
+            <div style="background: #fff8f8; padding: 1rem; border-radius: 15px; text-align: left; margin-bottom: 1.5rem; border: 1px solid #fadbd8;">
+                <p style="font-size: 0.85rem; color: #c0392b; margin: 0; line-height: 1.4;">
+                    <i class="fa-solid fa-circle-info"></i> <strong>Co to oznacza?</strong><br>
+                    • Stracisz wgląd do pupili drugiego właściciela.<br>
+                    • Drugi właściciel straci wgląd do Twoich pupili.
+                </p>
+            </div>
+            <button id="confirmUnpairAccountsBtn" class="btn-primary-small w-100" style="background: #e74c3c;">Tak, rozłącz konta</button>
+            <button id="cancelUnpairAccountsBtn" class="btn-small-text w-100" style="margin-top: 0.5rem;">Anuluj</button>
+        </div>
+    </div>
+
+    <!-- MODAL: Usuń konto -->
+    <div id="deleteAccountModalOverlay" class="color-modal-overlay">
+        <div class="color-modal" style="text-align: center; padding: 2rem 1.5rem;">
+            <div class="image-outer-ring" style="width: 80px; height: 80px; background: #fff5f5; border: 3px solid #ffccd2; margin-top: -40px; box-shadow: 0 10px 25px rgba(211, 47, 47, 0.25) !important;">
+                <div class="image-wrapper" style="background: #fff5f5; display: flex; align-items: center; justify-content: center;">
+                    <i class="fa-solid fa-user-slash" style="font-size: 2rem; color: #d32f2f;"></i>
+                </div>
+            </div>
+            <h3 style="margin-top: 1rem; color: #d32f2f;">Usuwanie konta</h3>
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem; line-height: 1.5;">
+                Czy na pewno chcesz usunąć konto na stałe? <br><br>
+                <b>Pamiętaj:</b> Twoje przypisane pupile zostaną odpięte. Tego działania nie da się cofnąć.
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+                <button id="cancelDeleteBtn" class="btn-action w-100" style="justify-content: center; padding: 1rem; font-size: 1.1rem; border-radius: 15px;">ZOSTAW KONTO</button>
+                <button id="confirmDeleteBtn" class="btn-small-text w-100" style="margin-top:0.5rem; color: #d32f2f; background:none; border:none; text-decoration: underline; cursor:pointer; font-weight: 700;">Chcę na stałe usunąć konto</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Odłącz pupila -->
+    <div id="unpairModalOverlay" class="color-modal-overlay">
+        <div class="color-modal" style="text-align: center; padding: 2rem 1.5rem;">
+            <div class="image-outer-ring" style="width: 80px; height: 80px; background: #fff5f5; border: 3px solid #ffccd2; margin-top: -40px; box-shadow: 0 10px 25px rgba(211, 47, 47, 0.25) !important;">
+                <div class="image-wrapper" style="background: #fff5f5; display: flex; align-items: center; justify-content: center;">
+                    <i class="fa-solid fa-link-slash" style="font-size: 2rem; color: #d32f2f;"></i>
+                </div>
+            </div>
+            <h3 style="margin-top: 1rem; color: #d32f2f;">Odłączanie pupila</h3>
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem; line-height: 1.5;">
+                Czy na pewno chcesz odłączyć tego pupila od swojego konta? <br><br>
+                <b>Pamiętaj:</b> Profil będzie wciąż istniał, ale jako „osierocony". Jeśli nikt go nie przypisze w ciągu <b>30 dni</b>, zostanie trwale usunięty.
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+                <button id="cancelUnpairBtn" class="btn-action w-100" style="justify-content: center; padding: 1rem; font-size: 1.1rem; border-radius: 15px;">ANULUJ</button>
+                <button id="confirmUnpairBtn" class="btn-small-text w-100" style="margin-top:0.5rem; color: #d32f2f; background:none; border:none; text-decoration: underline; cursor:pointer; font-weight: 700;">Chcę odłączyć pupila</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Przypisz brelok -->
+    <div id="nfcModalOverlay" class="color-modal-overlay">
+        <div class="color-modal" style="text-align: center; padding: 2rem 1.5rem;">
+            <button id="cancelNfcBtn" class="modal-close-icon"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="modal-title">Przypisz brelok</h3>
+
+            <div id="assignInitialView">
+                <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">
+                    Wpisz kod ID swojego pupila z dołączonej karteczki, lub przyłóż brelok do telefonu, aby połączyć.
+                </p>
+
+                <div class="form-group" style="text-align: left; margin-bottom: 1.5rem;">
+                    <label for="manualPetId" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">
+                        <i class="fa-solid fa-hashtag"></i> Kod ID Breloka
+                    </label>
+                    <input type="text" id="manualPetId" class="form-input" placeholder="np. 12345" style="border-radius: 12px; margin-top: 0.4rem;">
+                </div>
+
+                <button id="assignManualBtn" class="btn-action w-100" style="justify-content: center; padding: 1rem; margin-bottom: 1.5rem; border-radius: 15px;">
+                    <i class="fa-solid fa-check"></i> Zatwierdź kod ID
+                </button>
+
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; color: #ddd;">
+                    <hr style="flex: 1; border: none; border-top: 1px solid #eee;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: #bbb;">LUB</span>
+                    <hr style="flex: 1; border: none; border-top: 1px solid #eee;">
+                </div>
+
+                <button id="startNfcScanBtn" class="btn-outline w-100" style="justify-content: center; padding: 1rem; border-radius: 15px;">
+                    <i class="fa-solid fa-rss"></i> Skanuj przez NFC
+                </button>
+            </div>
+
+            <div id="assignScanView" class="hidden">
+                <div class="radar-container" style="margin-top: 2rem;">
+                    <div class="radar-circle"></div>
+                    <div class="radar-circle delay-1"></div>
+                    <div class="radar-circle delay-2"></div>
+                    <i class="fa-solid fa-mobile-screen radar-icon"></i>
+                </div>
+                <h3 style="margin-top: 2rem; margin-bottom: 0.5rem; font-size: 1.3rem;">Skanowanie NFC</h3>
+                <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">
+                    Zbliż przypisywany brelok do tylnej części telefonu...
+                </p>
+                <button id="backToInitialBtn" class="btn-small-text" style="color: var(--primary); font-weight: 700; background: none; border: none; cursor: pointer;">
+                    <i class="fa-solid fa-arrow-left"></i> Wróć do wpisywania kodu
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Wynik przypisania -->
+    <div id="resultModalOverlay" class="color-modal-overlay">
+        <div class="color-modal" style="text-align: center; padding: 2rem 1.5rem;">
+            <div id="resultIconContainer" class="image-outer-ring" style="width: 80px; height: 80px; margin-top: -40px;">
+                <div class="image-wrapper" style="display: flex; align-items: center; justify-content: center;">
+                    <i id="resultIcon" class="fa-solid fa-check" style="font-size: 2.5rem;"></i>
+                </div>
+            </div>
+            <h3 id="resultTitle" style="margin-top: 1rem;">Sukces!</h3>
+            <p id="resultMessage" style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem; line-height: 1.5;">
+                Pomyślnie przypisano nowy brelok do Twojego konta.
+            </p>
+            <button id="closeResultBtn" class="btn-action w-100" style="justify-content: center; padding: 1rem; font-size: 1.1rem; border-radius: 15px;">OK</button>
+        </div>
+    </div>
+
+    <script src="panel.js"></script>
+</body>
+</html>

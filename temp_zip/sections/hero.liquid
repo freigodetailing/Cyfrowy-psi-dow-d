@@ -1,0 +1,165 @@
+<section class="main-hero-banner" id="hero-{{ section.id }}">
+    <div class="container">
+        <div class="hero-wrapper">
+            <h1 class="hero-title">{{ section.settings.heading }}</h1>
+            
+            <div class="hero-main-img-container">
+                {% if section.settings.main_image != blank %}
+                    <img src="{{ section.settings.main_image | image_url: width: 1000 }}" alt="{{ section.settings.heading }}" class="hero-floating-img" loading="eager">
+                {% else %}
+                    <div class="hero-placeholder-icon">
+                        <i class="fas fa-paw"></i>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="hero-description">
+                {{ section.settings.description }}
+            </div>
+
+            <div class="hero-btn-container">
+                <a href="{{ section.settings.button_link }}" class="btn-pill-grey">
+                    {{ section.settings.button_text }}
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+.main-hero-banner {
+    padding: 120px 0 80px;
+    background: radial-gradient(circle at center, #fdfdfd, #f8faff);
+    text-align: center;
+    overflow: hidden;
+}
+
+.hero-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.logo-text { 
+    font-size: 1.5rem; 
+    font-weight: 900; 
+    letter-spacing: -1px; 
+    color: var(--primary, #1e293b); /* Now follows theme color */
+}
+
+.hero-title {
+    font-size: clamp(2.2rem, 7vw, 4rem);
+    font-weight: 900;
+    line-height: 1.1;
+    color: #1a202c;
+    margin-bottom: 2rem;
+    letter-spacing: -1.5px;
+}
+
+.hero-main-img-container {
+    margin: 0 auto 3rem;
+    max-width: 480px;
+    width: 100%;
+}
+
+.hero-floating-img {
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 15px 30px rgba(0,0,0,0.08));
+    animation: floatingEffect 5s ease-in-out infinite;
+}
+
+.hero-placeholder-icon {
+    width: 180px;
+    height: 180px;
+    margin: 0 auto;
+    background: #edf2f7;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+    color: #a0aec0;
+}
+
+.hero-description {
+    font-size: clamp(1.1rem, 2.5vw, 1.3rem);
+    line-height: 1.6;
+    color: #4a5568;
+    margin-bottom: 3.5rem;
+}
+
+.btn-pill-grey {
+    display: inline-block;
+    padding: 1.25rem 3.5rem;
+    background: var(--primary, #4a5568);
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 800;
+    font-size: 1.1rem;
+    border-radius: 100px;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.btn-pill-grey:hover {
+    transform: translateY(-4px);
+    background: var(--primary-dark, #2d3748);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+}
+
+@keyframes floatingEffect {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+}
+
+@media (max-width: 768px) {
+    .main-hero-banner { padding: 100px 0 60px; }
+    .hero-title { margin-bottom: 1.5rem; }
+    .hero-main-img-container { max-width: 300px; margin-bottom: 2.5rem; }
+    .btn-pill-grey { width: 100%; padding: 1.1rem 2rem; }
+}
+</style>
+
+{% schema %}
+{
+  "name": "Main Hero Banner",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Nagłówek",
+      "default": "Cyfrowy dowód Twojego pupila z brelokami NFC"
+    },
+    {
+      "type": "image_picker",
+      "id": "main_image",
+      "label": "Obraz główny"
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "Opis",
+      "default": "<p>Połączyliśmy wytrzymałość druku 3D z technologią NFC. Poznaj Cyfrowy Dowód Pupila — adresówkę, która nie tylko informuje, ale i lokalizuje.</p>"
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Tekst przycisku",
+      "default": "Kup Brelok NFC - 27 ZŁ"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Link przycisku",
+      "default": "/"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Main Hero Banner",
+      "category": "Image"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,65 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-page-policy",
+      "settings": {
+        "title": "Regulamin Sklepu"
+      },
+      "blocks": {
+        "postanowienia": {
+          "type": "text_section",
+          "settings": {
+            "heading": "§ 1 Postanowienia ogólne",
+            "content": "<p>Sklep internetowy dostępny pod adresem <strong>dowodpupila.pl</strong> prowadzony jest przez firmę: <strong>Marcin Golubiński - FreiGo Mobilny AutoDetailing</strong>, z siedzibą w Katowicach (40-709) przy ul. Panewnickiej 18/3. NIP: <strong>6343061582</strong>, REGON: <strong>542903159</strong>.</p><p>Niniejszy Regulamin określa zasady korzystania ze Sklepu oraz zasady i tryb zawierania Umów Sprzedaży na odległość.</p>"
+          }
+        },
+        "przedmiot": {
+          "type": "text_section",
+          "settings": {
+            "heading": "§ 2 Przedmiot sprzedaży",
+            "content": "<p>Przedmiotem sprzedaży są personalizowane breloki identyfikacyjne dla zwierząt wyposażone w technologię NFC oraz kod QR. Produkty są wykonywane na indywidualne zamówienie Klienta według podanej specyfikacji.</p>"
+          }
+        },
+        "zamowienia": {
+          "type": "text_section",
+          "settings": {
+            "heading": "§ 3 Składanie zamówień",
+            "content": "<p>Zamówienia można składać 24/7 za pośrednictwem strony internetowej. Warunkiem złożenia zamówienia jest wybór modelu produktu, podanie danych niezbędnych do personalizacji oraz dokonanie płatności elektronicznej.</p>"
+          }
+        },
+        "platnosci": {
+          "type": "text_section",
+          "settings": {
+            "heading": "§ 4 Płatności i Dostawa",
+            "content": "<p>Sklep obsługuje płatności elektroniczne za pośrednictwem certyfikowanych systemów płatniczych platformy Shopify. Czas realizacji zamówienia (produkcja + wysyłka) wynosi od <strong>2 do 7 dni roboczych</strong>.</p>"
+          }
+        },
+        "zwroty": {
+          "type": "text_section",
+          "settings": {
+            "heading": "§ 5 Prawo do odstąpienia od umowy (Zwroty)",
+            "content": "<p><strong>WAŻNE:</strong> Zgodnie z art. 38 pkt 3 ustawy o prawach konsumenta, prawo do odstąpienia od umowy zawartej na odległość NIE PRZYSŁUGUJE w przypadku produktów personalizowanych, wyprodukowanych według specyfikacji konsumenta. Breloki z unikalnymi danymi Twojego pupila nie podlegają zwrotowi bez podania przyczyny.</p>"
+          }
+        },
+        "reklamacje": {
+          "type": "text_section",
+          "settings": {
+            "heading": "§ 6 Reklamacje i Kontakt",
+            "content": "<p>Reklamacje dotyczące wad technicznych produktu należy zgłaszać drogą mailową na adres: <strong>dowodpupila@gmail.com</strong>. Sklep rozpatrzy każdą reklamację w terminie 14 dni od jej otrzymania.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "postanowienia",
+        "przedmiot",
+        "zamowienia",
+        "platnosci",
+        "zwroty",
+        "reklamacje"
+      ]
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

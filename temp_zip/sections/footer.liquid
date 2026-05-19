@@ -1,0 +1,105 @@
+<footer class="footer">
+    <div class="container">
+        <div class="footer-grid">
+            {% for block in section.blocks %}
+                {% case block.type %}
+                    {% when 'brand' %}
+                        <div class="footer-brand" {{ block.shopify_attributes }}>
+                            <h3>{{ block.settings.title }}</h3>
+                            <p>{{ block.settings.bio }}</p>
+                            <div style="margin-top: 1.5rem; font-size: 0.85rem; line-height: 1.4;">
+                                {{ block.settings.company_details }}
+                            </div>
+                        </div>
+                    
+                    {% when 'menu' %}
+                        <div class="footer-links" {{ block.shopify_attributes }}>
+                            <h4>{{ block.settings.title }}</h4>
+                            <ul>
+                                {% for link in linklists[block.settings.menu].links %}
+                                    <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    
+                    {% when 'social' %}
+                        <div class="footer-links" {{ block.shopify_attributes }}>
+                            <h4>{{ block.settings.title }}</h4>
+                            <div class="social-links" style="display: flex; gap: 1rem;">
+                                {% if block.settings.instagram_url != blank %}
+                                    <a href="{{ block.settings.instagram_url }}" style="color: white; font-size: 1.5rem;"><i class="fab fa-instagram"></i></a>
+                                {% endif %}
+                                {% if block.settings.facebook_url != blank %}
+                                    <a href="{{ block.settings.facebook_url }}" style="color: white; font-size: 1.5rem;"><i class="fab fa-facebook"></i></a>
+                                {% endif %}
+                                {% if block.settings.tiktok_url != blank %}
+                                    <a href="{{ block.settings.tiktok_url }}" style="color: white; font-size: 1.5rem;"><i class="fab fa-tiktok"></i></a>
+                                {% endif %}
+                            </div>
+                        </div>
+                {% endcase %}
+            {% endfor %}
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; {{ 'now' | date: "%Y" }} {{ section.settings.copyright_text }}</p>
+            <div class="payment-icons" style="display: flex; gap: 1rem; font-size: 1.5rem; color: #475569;">
+                <i class="fab fa-cc-visa"></i>
+                <i class="fab fa-cc-mastercard"></i>
+                <i class="fab fa-cc-paypal"></i>
+                <i class="fab fa-apple-pay"></i>
+                <i class="fab fa-google-pay"></i>
+            </div>
+        </div>
+    </div>
+</footer>
+
+{% schema %}
+{
+  "name": "Footer",
+  "settings": [
+    { "type": "text", "id": "copyright_text", "label": "Tekst praw autorskich", "default": "DowodPupila. Wszystkie prawa zastrzeżone." }
+  ],
+  "blocks": [
+    {
+      "type": "brand",
+      "name": "O marce",
+      "limit": 1,
+      "settings": [
+        { "type": "text", "id": "title", "label": "Nazwa", "default": "DowodPupila" },
+        { "type": "textarea", "id": "bio", "label": "Opis", "default": "Nowoczesna identyfikacja dla Twojego pupila." },
+        { "type": "richtext", "id": "company_details", "label": "Dane firmy", "default": "<p><strong>Marcin Golubiński - FreiGo</strong><br>ul. Panewnicka 18/3, 40-709 Katowice<br>NIP: 6343061582</p>" }
+      ]
+    },
+    {
+      "type": "menu",
+      "name": "Menu",
+      "settings": [
+        { "type": "text", "id": "title", "label": "Tytuł kolumny", "default": "Menu" },
+        { "type": "link_list", "id": "menu", "label": "Wybierz menu" }
+      ]
+    },
+    {
+      "type": "social",
+      "name": "Media Społecznościowe",
+      "limit": 1,
+      "settings": [
+        { "type": "text", "id": "title", "label": "Tytuł", "default": "Śledź nas" },
+        { "type": "url", "id": "instagram_url", "label": "Instagram" },
+        { "type": "url", "id": "facebook_url", "label": "Facebook" },
+        { "type": "url", "id": "tiktok_url", "label": "TikTok" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Footer",
+      "blocks": [
+        { "type": "brand" },
+        { "type": "menu", "settings": { "title": "Menu" } },
+        { "type": "social" }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,135 @@
+<section class="app-section" id="app">
+    <div class="container app-grid">
+        <div class="phone-mockup">
+            <div class="phone-slider" id="phone-slider-{{ section.id }}">
+                {%- assign image_blocks = section.blocks | where: "type", "image" -%}
+                {%- assign image_count = image_blocks.size -%}
+                
+                {% for block in image_blocks %}
+                    {% if block.settings.image %}
+                        <img src="{{ block.settings.image | image_url: width: 600 }}" alt="{{ block.settings.alt_text }}" loading="lazy" {{ block.shopify_attributes }}>
+                    {% else %}
+                        <img src="{{ 'profil-psa.png' | asset_url }}" alt="Podgląd aplikacji" loading="lazy">
+                    {% endif %}
+                {% endfor %}
+                
+                {% if image_count == 0 %}
+                    <img src="{{ 'profil-psa.png' | asset_url }}" alt="Podgląd aplikacji" loading="lazy">
+                    <img src="{{ 'mapa.png' | asset_url }}" alt="Mapa" loading="lazy">
+                    {%- assign image_count = 2 -%}
+                {% endif %}
+            </div>
+        </div>
+        <div class="app-content">
+            <h2>{{ section.settings.title }}</h2>
+            <p>{{ section.settings.description }}</p>
+            
+            <ul class="app-features-list">
+                {% for block in section.blocks %}
+                    {% if block.type == 'feature' %}
+                        <li class="app-feature-item" {{ block.shopify_attributes }}>
+                            <i class="{{ block.settings.icon }}"></i>
+                            <div>
+                                <h3>{{ block.settings.title }}</h3>
+                                <p>{{ block.settings.text }}</p>
+                            </div>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+            
+            <div class="app-download-cta">
+                <a href="{{ section.settings.btn_link }}" class="btn btn-primary btn-lg">
+                    {{ section.settings.btn_text }}
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+#phone-slider-{{ section.id }} {
+    display: flex;
+    width: {{ image_count | times: 100 }}%;
+    animation: slideApp-{{ section.id }} {{ image_count | times: 4 }}s infinite ease-in-out;
+}
+
+#phone-slider-{{ section.id }} img {
+    width: {{ 100.0 | divided_by: image_count }}%;
+    flex-shrink: 0;
+}
+
+@keyframes slideApp-{{ section.id }} {
+    {%- assign last_index = image_count | minus: 1 -%}
+    {%- assign step = 100.0 | divided_by: image_count -%}
+    
+    {%- for i in (0..last_index) -%}
+        {%- assign start_p = i | times: step -%}
+        {%- assign end_p = start_p | plus: step | minus: 2.0 -%}
+        {{ start_p }}%, {{ end_p }}% { transform: translateX(-{{ i | times: step }}%); }
+    {%- endfor -%}
+    100% { transform: translateX(0); }
+}
+
+.app-download-cta {
+    margin-top: 4rem;
+    display: flex;
+    justify-content: center;
+}
+
+@media (max-width: 968px) {
+    .app-download-cta {
+        margin-top: 3rem;
+    }
+}
+</style>
+
+{% schema %}
+{
+  "name": "App Promo",
+  "settings": [
+    { "type": "text", "id": "title", "label": "Nagłówek", "default": "Inteligentne Zarządzanie" },
+    { "type": "textarea", "id": "description", "label": "Opis", "default": "Sercem systemu jest dedykowana aplikacja." },
+    { "type": "text", "id": "btn_text", "label": "Tekst przycisku", "default": "Pobierz Aplikację" },
+    { "type": "url", "id": "btn_link", "label": "Link przycisku (PWA)", "default": "/" }
+  ],
+  "blocks": [
+    {
+      "type": "image",
+      "name": "Zrzut ekranu (Slider)",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Obraz" },
+        { "type": "text", "id": "alt_text", "label": "Tekst alternatywny", "default": "Podgląd aplikacji" }
+      ]
+    },
+    {
+      "type": "feature",
+      "name": "Funkcja aplikacji",
+      "settings": [
+        { "type": "text", "id": "icon", "label": "Ikona (FontAwesome)", "default": "fas fa-paw" },
+        { "type": "text", "id": "title", "label": "Tytuł", "default": "Nowa funkcja" },
+        { "type": "textarea", "id": "text", "label": "Opis", "default": "Opisz jak działa ta funkcja." }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "App Promo",
+      "blocks": [
+        { "type": "image" },
+        { "type": "image" },
+        { "type": "image" },
+        { "type": "image" },
+        { "type": "image" },
+        { "type": "image" },
+        { "type": "feature", "settings": { "icon": "fas fa-pen-to-square", "title": "Edytowalny Profil", "text": "Aktualizuj dane pupila w dowolnym momencie." } },
+        { "type": "feature", "settings": { "icon": "fas fa-map-location-dot", "title": "Lokalizacja na Mapie", "text": "Namierz psa po każdym zeskanowaniu breloka." } },
+        { "type": "feature", "settings": { "icon": "fas fa-bell", "title": "Tryb Alarmowy", "text": "Aktywuj alarm, gdy Twój pupil nie wróci do domu." } },
+        { "type": "feature", "settings": { "icon": "fas fa-paw", "title": "Wiele Zwierząt", "text": "Zarządzaj wszystkimi pupilami z jednego konta." } },
+        { "type": "feature", "settings": { "icon": "fas fa-share-nodes", "title": "Dzielenie Konta", "text": "Udostępnij profil pupila bliskim osobom." } },
+        { "type": "feature", "settings": { "icon": "fas fa-shoe-prints", "title": "Licznik Kroków", "text": "Mierz aktywność psa podczas każdego spaceru." } }
+      ]
+    }
+  ]
+}
+{% endschema %}

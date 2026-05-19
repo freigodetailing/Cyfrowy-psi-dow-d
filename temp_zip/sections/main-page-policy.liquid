@@ -1,0 +1,124 @@
+<div class="policy-header">
+    <div class="container">
+        <h1>{{ section.settings.title | default: page.title }}</h1>
+    </div>
+</div>
+
+<div class="container">
+    <div class="policy-content">
+        {% for block in section.blocks %}
+            {% case block.type %}
+                {% when 'update_date' %}
+                    <div class="policy-block" {{ block.shopify_attributes }}>
+                        <p>Ostatnia aktualizacja: <strong>{{ 'now' | date: "%d %B %Y" }} r.</strong></p>
+                    </div>
+                {% when 'text_section' %}
+                    <div class="policy-block" {{ block.shopify_attributes }}>
+                        {% if block.settings.heading != blank %}
+                            <h2>{{ block.settings.heading }}</h2>
+                        {% endif %}
+                        {% if block.settings.content != blank %}
+                            <div class="policy-text">
+                                {{ block.settings.content }}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% when 'raw_html' %}
+                    <div class="policy-block" {{ block.shopify_attributes }}>
+                        {{ block.settings.html }}
+                    </div>
+            {% endcase %}
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.policy-header {
+    padding: 120px 0 60px;
+    background: #f8fafc;
+    text-align: center;
+    border-bottom: 1px solid #e2e8f0;
+}
+.policy-header h1 {
+    font-size: 3rem;
+    color: var(--bg-dark);
+}
+.policy-content {
+    max-width: 800px;
+    margin: 60px auto 120px;
+    line-height: 1.8;
+    color: var(--text-main);
+    font-size: 1.1rem;
+}
+.policy-block h2 {
+    margin-top: 3rem;
+    color: var(--bg-dark);
+    border-bottom: 2px solid var(--primary);
+    display: inline-block;
+    padding-bottom: 5px;
+}
+.policy-text p {
+    margin-bottom: 1rem;
+}
+.policy-text strong {
+    font-weight: 600;
+    color: var(--bg-dark);
+}
+</style>
+
+{% schema %}
+{
+  "name": "Treść Polityki/Regulaminu",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Tytuł strony (zastępuje domyślny)"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "update_date",
+      "name": "Data aktualizacji (dziś)",
+      "limit": 1
+    },
+    {
+      "type": "text_section",
+      "name": "Sekcja tekstowa",
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Nagłówek (H2)"
+        },
+        {
+          "type": "richtext",
+          "id": "content",
+          "label": "Treść akapitu"
+        }
+      ]
+    },
+    {
+      "type": "raw_html",
+      "name": "Kod HTML",
+      "settings": [
+        {
+          "type": "html",
+          "id": "html",
+          "label": "Kod HTML"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Treść Polityki/Regulaminu",
+      "blocks": [
+        {
+          "type": "text_section"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

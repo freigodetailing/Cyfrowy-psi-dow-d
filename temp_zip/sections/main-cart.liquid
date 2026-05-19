@@ -1,0 +1,19 @@
+<div class="container" style="padding: 100px 0;">
+  <h1>Koszyk</h1>
+  <form action="/cart" method="post" novalidate>
+    {% for item in cart.items %}
+      <div class="cart-item">
+        <img src="{{ item.image | image_url: width: 100 }}">
+        {{ item.product.title }} - {{ item.price | money }}
+      </div>
+    {% endfor %}
+    <button type="submit" name="checkout" class="btn btn-primary">Do kasy</button>
+  </form>
+</div>
+
+{% schema %}
+{
+  "name": "Main Cart",
+  "settings": []
+}
+{% endschema %}

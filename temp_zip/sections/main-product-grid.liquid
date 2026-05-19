@@ -1,0 +1,81 @@
+<section class="section" id="shop">
+    <div class="container">
+        <div style="text-align: center; margin-bottom: 4rem;">
+            <h2>{{ section.settings.title | default: "Wybierz swój wzór" }}</h2>
+            <p style="color: var(--text-muted); max-width: 600px; margin: 1rem auto 0;">{{ section.settings.description | default: "Każdy brelok wykonywany jest na zamówienie." }}</p>
+        </div>
+
+        <div class="product-grid" style="max-width: 800px; margin: 0 auto;">
+            {%- assign collection = collections[section.settings.collection] -%}
+            
+            {%- if collection and collection.products.size > 0 -%}
+                {%- for product in collection.products limit: section.settings.products_limit -%}
+                  <div class="product-card" data-product-id="{{ product.id }}">
+                      {% form 'product', product %}
+                        <div class="product-image">
+                            <img src="{{ product.featured_image | image_url: width: 600 }}" alt="{{ product.title }}" class="product-main-img" loading="lazy">
+                        </div>
+                        <div class="product-info">
+                            <h3>{{ product.title }}</h3>
+                            
+                            {% if product.variants.size > 1 %}
+                              <div class="size-selector">
+                                  <label>{{ section.settings.size_label }}</label>
+                                  <div class="size-options">
+                                      {% for variant in product.variants %}
+                                          <button type="button" 
+                                               class="size-option {% if forloop.first %}active{% endif %}" 
+                                               data-variant-id="{{ variant.id }}">
+                                              {{ variant.title }}
+                                          </button>
+                                      {% endfor %}
+                                  </div>
+                              </div>
+                            {% endif %}
+
+                            {% comment %} Krytyczne pole ID wariantu {% endcomment %}
+                            <input type="hidden" name="id" class="product-variant-id" value="{{ product.selected_or_first_available_variant.id }}">
+                            <input type="hidden" name="quantity" value="1">
+
+                            <div class="price">{{ product.price | money }}</div>
+                            
+                            {% if product.available %}
+                                <button type="submit" name="add" class="btn btn-primary btn-full">
+                                    {{ section.settings.add_to_cart_text }}
+                                </button>
+                            {% else %}
+                                <button type="button" class="btn btn-primary btn-full" disabled>
+                                    {{ section.settings.out_of_stock_text }}
+                                </button>
+                            {% endif %}
+                        </div>
+                      {% endform %}
+                  </div>
+                {%- endfor -%}
+            {%- else -%}
+                <div style="grid-column: 1/-1; text-align: center; padding: 3rem; background: #f8f9fa; border-radius: 20px; border: 2px dashed #ddd;">
+                    <p style="color: #666;">Wybierz kolekcję produktów w panelu bocznym edytora, aby wyświetlić sklep.</p>
+                </div>
+            {%- endif -%}
+        </div>
+    </div>
+</section>
+
+{% schema %}
+{
+  "name": "Product Grid",
+  "settings": [
+    { "type": "text", "id": "title", "label": "Nagłówek", "default": "Wybierz swój wzór" },
+    { "type": "textarea", "id": "description", "label": "Opis", "default": "Każdy brelok wykonywany jest na zamówienie." },
+    { "type": "collection", "id": "collection", "label": "Wybierz Kolekcję Produktów" },
+    { "type": "range", "id": "products_limit", "min": 2, "max": 12, "step": 2, "label": "Limit produktów", "default": 4 },
+    { "type": "header", "content": "Teksty przycisków" },
+    { "type": "text", "id": "size_label", "label": "Etykieta rozmiaru", "default": "Wybierz rozmiar:" },
+    { "type": "text", "id": "add_to_cart_text", "label": "Dodaj do koszyka", "default": "Dodaj do koszyka" },
+    { "type": "text", "id": "out_of_stock_text", "label": "Brak towaru", "default": "Brak w magazynie" }
+  ],
+  "presets": [
+    { "name": "Product Grid" }
+  ]
+}
+{% endschema %}

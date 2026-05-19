@@ -1,0 +1,49 @@
+<section class="section" id="creation">
+    <div class="container">
+        <div style="text-align: center; max-width: 700px; margin: 0 auto 4rem;">
+            <h2>{{ section.settings.title }}</h2>
+            <p>{{ section.settings.description }}</p>
+        </div>
+
+        <div class="process-grid">
+            {% for block in section.blocks %}
+                <div class="process-card" {{ block.shopify_attributes }}>
+                    <div class="icon-box"><i class="{{ block.settings.icon }}"></i></div>
+                    <h3>{{ block.settings.title }}</h3>
+                    <p>{{ block.settings.text }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{% schema %}
+{
+  "name": "Features Section",
+  "settings": [
+    { "type": "text", "id": "title", "label": "Nagłówek sekcji", "default": "Inteligentne adresówki z druku 3D" },
+    { "type": "textarea", "id": "description", "label": "Opis sekcji", "default": "Nasze breloki NFC powstają z ultra-wytrzymałego materiału PETG." }
+  ],
+  "blocks": [
+    {
+      "type": "feature",
+      "name": "Zaleta",
+      "settings": [
+        { "type": "text", "id": "icon", "label": "Ikona (FontAwesome)", "default": "fas fa-cube" },
+        { "type": "text", "id": "title", "label": "Tytuł", "default": "Tytuł zalety" },
+        { "type": "textarea", "id": "text", "label": "Opis", "default": "Opisz tę zaletę tutaj." }
+      ]
+    }
+  ],
+  "presets": [
+    { 
+      "name": "Features Section",
+      "blocks": [
+        { "type": "feature", "settings": { "icon": "fas fa-cube", "title": "Druk 3D PETG", "text": "Korzystamy z wysokiej jakości materiału PETG." } },
+        { "type": "feature", "settings": { "icon": "fas fa-layer-group", "title": "Lakier UV Protection", "text": "Każdy egzemplarz pokrywamy specjalnym lakierem." } },
+        { "type": "feature", "settings": { "icon": "fas fa-water", "title": "Pełna Wodoodporność", "text": "Brelok jest w 100% wodoodporny." } }
+      ]
+    }
+  ]
+}
+{% endschema %}

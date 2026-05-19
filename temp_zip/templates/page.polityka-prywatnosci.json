@@ -1,0 +1,62 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-page-policy",
+      "settings": {
+        "title": "Polityka Prywatności"
+      },
+      "blocks": {
+        "date": {
+          "type": "update_date",
+          "settings": {}
+        },
+        "admin": {
+          "type": "text_section",
+          "settings": {
+            "heading": "1. Administrator Danych Osobowych",
+            "content": "<p>Administratorem danych osobowych zbieranych za pośrednictwem sklepu <strong>dowodpupila.pl</strong> jest firma: <strong>Marcin Golubiński - FreiGo Mobilny AutoDetailing</strong>, z siedzibą w Katowicach (40-709) przy ul. Panewnickiej 18/3. NIP: <strong>6343061582</strong>. Kontakt: <strong>dowodpupila@gmail.com</strong>.</p>"
+          }
+        },
+        "zakres": {
+          "type": "text_section",
+          "settings": {
+            "heading": "2. Zakres i cel przetwarzania",
+            "content": "<p>Przetwarzamy dane niezbędne do realizacji Twojego zamówienia: imię i nazwisko, adres do wysyłki, adres e-mail oraz numer telefonu. Przetwarzamy również dane pupila przekazane dobrowolnie w celu personalizacji breloka NFC.</p>"
+          }
+        },
+        "bezpieczenstwo": {
+          "type": "text_section",
+          "settings": {
+            "heading": "3. Bezpieczeństwo danych",
+            "content": "<p>Twoje dane są chronione zgodnie z obowiązującymi przepisami (RODO). Płatności są procesowane przez bezpieczny system <strong>Shopify Payments</strong>. Nie udostępniamy Twoich danych podmiotom trzecim w celach innych niż realizacja wysyłki i zamówienia.</p>"
+          }
+        },
+        "cookies": {
+          "type": "text_section",
+          "settings": {
+            "heading": "4. Pliki Cookies",
+            "content": "<p>Strona korzysta z plików cookies w celu poprawnego działania funkcji sklepu (koszyk, wybór motywu). Możesz zarządzać ciasteczkami w ustawieniach swojej przeglądarki.</p>"
+          }
+        },
+        "prawa": {
+          "type": "text_section",
+          "settings": {
+            "heading": "5. Twoje prawa",
+            "content": "<p>Masz prawo do dostępu do swoich danych, ich sprostowania, żądania ich usunięcia lub ograniczenia przetwarzania. W sprawach tych prosimy o kontakt mailowy.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "date",
+        "admin",
+        "zakres",
+        "bezpieczenstwo",
+        "cookies",
+        "prawa"
+      ]
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

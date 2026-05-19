@@ -1,0 +1,19 @@
+<div class="container" style="padding: 100px 0;">
+  <h1>Nasze Kolekcje</h1>
+  <div class="collection-grid">
+    {% for collection in collections %}
+      <div class="collection-card">
+        <a href="{{ collection.url }}">
+          <h2>{{ collection.title }}</h2>
+        </a>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Main List Collections",
+  "settings": []
+}
+{% endschema %}

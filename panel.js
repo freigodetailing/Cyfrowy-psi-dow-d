@@ -1,30 +1,35 @@
 // PWA Installation Logic
-let deferredPrompt;
+let deferredPrompt = null;
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-const isSafariOnIOS = isIOS && 
-                      /Safari/i.test(navigator.userAgent) && 
-                      !/CriOS/i.test(navigator.userAgent) && 
-                      !/FxiOS/i.test(navigator.userAgent) && 
-                      !/EdgiOS/i.test(navigator.userAgent) && 
-                      !/OPiOS/i.test(navigator.userAgent) && 
-                      !/wv|WebView/i.test(navigator.userAgent);
+const isSafariOnIOS = isIOS &&
+    /Safari/i.test(navigator.userAgent) &&
+    !/CriOS|FxiOS|EdgiOS|OPiOS/i.test(navigator.userAgent) &&
+    !/wv|WebView/i.test(navigator.userAgent);
 
+// Sprawdza czy aplikacja działa w trybie standalone (zainstalowana PWA)
 function checkIsStandalone() {
-    const isWebView = /wv|WebView|FBAN|FBAV|Instagram|Line/i.test(navigator.userAgent) || 
-                      (isIOS && !window.navigator.standalone && !/Safari/i.test(navigator.userAgent));
-                      
-    const isStandalone = 
-           window.matchMedia('(display-mode: standalone)').matches || 
-           window.matchMedia('(display-mode: fullscreen)').matches ||
-           window.matchMedia('(display-mode: minimal-ui)').matches ||
-           window.matchMedia('(display-mode: window-controls-overlay)').matches ||
-           window.navigator.standalone === true ||
-           document.referrer.includes('android-app://') ||
-           window.location.search.includes('mode=pwa') ||
-           window.location.search.includes('utm_source=pwa') ||
-           sessionStorage.getItem('isPWAStandalone') === 'true' ||
-           isWebView;
-           
+    // Sprawdzenie CSS media query (najbardziej wiarygodne)
+    const displayModeStandalone =
+        window.matchMedia('(display-mode: standalone)').matches ||
+        window.matchMedia('(display-mode: fullscreen)').matches ||
+        window.matchMedia('(display-mode: minimal-ui)').matches ||
+        window.matchMedia('(display-mode: window-controls-overlay)').matches;
+
+    // iOS Safari: window.navigator.standalone = true gdy zainstalowana
+    const iosStandalone = window.navigator.standalone === true;
+
+    // Parametr w URL dodany przez manifest.json (start_url: ?mode=pwa)
+    const urlParam = window.location.search.includes('mode=pwa') ||
+                     window.location.search.includes('utm_source=pwa');
+
+    // Referrer Android app
+    const androidApp = document.referrer.includes('android-app://');
+
+    // Stan zapamiętany w tej sesji (po nawigacji między stronami w PWA)
+    const sessionFlag = sessionStorage.getItem('isPWAStandalone') === 'true';
+
+    const isStandalone = displayModeStandalone || iosStandalone || urlParam || androidApp || sessionFlag;
+
     if (isStandalone) {
         sessionStorage.setItem('isPWAStandalone', 'true');
         localStorage.setItem('pwaInstalled', '1');
@@ -32,101 +37,105 @@ function checkIsStandalone() {
     return isStandalone;
 }
 
-// Funkcja sprawdzająca status instalacji i zarządzająca widocznością przycisku
-async function updateInstallButtonState() {
+// Ukryj przycisk natychmiast (synchronicznie), zanim DOM się załaduje
+// Zapobiega "miganiu" przycisku na ułamek sekundy
+if (checkIsStandalone() || localStorage.getItem('pwaInstalled') === '1') {
+    document.addEventListener('DOMContentLoaded', () => {
+        const btn = document.getElementById('installAppBtn');
+        if (btn) btn.style.display = 'none';
+    });
+}
+
+// Pokazuje lub ukrywa przycisk instalacji
+function updateInstallButtonVisibility() {
     const installBtn = document.getElementById('installAppBtn');
     if (!installBtn) return;
 
-    // 1. Sprawdzenie czy uruchomiono w trybie samodzielnym (PWA)
-    if (checkIsStandalone()) {
-        localStorage.setItem('pwaInstalled', '1');
+    // Zasada: domyślnie ukryty, pokazujemy TYLKO jeśli wszystkie warunki spełnione
+    const shouldHide = checkIsStandalone() ||
+                       localStorage.getItem('pwaInstalled') === '1';
+
+    if (shouldHide) {
         installBtn.style.display = 'none';
-        return;
     }
-
-    // 2. Sprawdzenie czy lokalna pamięć (cache) wskazuje, że aplikacja jest zainstalowana
-    if (localStorage.getItem('pwaInstalled') === '1') {
-        installBtn.style.display = 'none';
-        return;
-    }
-
-    // 3. Sprawdzenie za pomocą oficjalnego API przeglądarki (navigator.getInstalledRelatedApps)
-    if ('getInstalledRelatedApps' in navigator) {
-        try {
-            const relatedApps = await navigator.getInstalledRelatedApps();
-            const isInstalled = relatedApps.length > 0;
-            if (isInstalled) {
-                localStorage.setItem('pwaInstalled', '1');
-                installBtn.style.display = 'none';
-                return;
-            }
-        } catch (err) {
-            console.warn("Błąd sprawdzania powiązanych aplikacji:", err);
-        }
-    }
-
-    // 4. Jeśli nie jest zainstalowana, a system to iOS – pokazujemy przycisk (z instrukcją) TYLKO w Safari
-    if (isSafariOnIOS) {
-        installBtn.style.display = 'flex';
-    } else if (deferredPrompt) {
-        // Jeśli przed załadowaniem DOM odpalił się event beforeinstallprompt, pokazujemy przycisk
-        installBtn.style.display = 'flex';
-    }
+    // Przycisk NIE jest tutaj pokazywany — to robi tylko beforeinstallprompt
 }
 
+// beforeinstallprompt: przeglądarka sygnalizuje że można zainstalować
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
-    deferredPrompt = e;
-    
-    // Jeśli odpala się to zdarzenie, sprawdzamy czy nie jesteśmy w trybie standalone
-    if (checkIsStandalone()) {
-        const installBtn = document.getElementById('installAppBtn');
-        if (installBtn) installBtn.style.display = 'none';
+
+    // Jeśli jesteśmy w trybie standalone lub już zainstalowana — ignoruj event całkowicie
+    if (checkIsStandalone() || localStorage.getItem('pwaInstalled') === '1') {
+        deferredPrompt = null;
+        const btn = document.getElementById('installAppBtn');
+        if (btn) btn.style.display = 'none';
         return;
     }
 
-    // Gdy jesteśmy w przeglądarce, a przed chwilą usunęliśmy aplikację lub wyczyściliśmy cache
-    if (localStorage.getItem('pwaInstalled') !== '1') {
+    // Tylko teraz zapisujemy prompt i pokazujemy przycisk
+    deferredPrompt = e;
+    const installBtn = document.getElementById('installAppBtn');
+    if (installBtn) installBtn.style.display = 'flex';
+});
+
+// appinstalled: użytkownik właśnie zainstalował aplikację
+window.addEventListener('appinstalled', () => {
+    localStorage.setItem('pwaInstalled', '1');
+    sessionStorage.setItem('isPWAStandalone', 'true');
+    deferredPrompt = null;
+    const installBtn = document.getElementById('installAppBtn');
+    if (installBtn) installBtn.style.display = 'none';
+    console.log('[PWA] App installed successfully.');
+});
+
+// Po załadowaniu DOM — ostateczna weryfikacja
+document.addEventListener('DOMContentLoaded', () => {
+    updateInstallButtonVisibility();
+
+    // Dla iOS Safari: pokaż przycisk jeśli aplikacja nie jest jeszcze zainstalowana
+    if (isSafariOnIOS &&
+        !checkIsStandalone() &&
+        localStorage.getItem('pwaInstalled') !== '1') {
         const installBtn = document.getElementById('installAppBtn');
         if (installBtn) installBtn.style.display = 'flex';
     }
 });
 
-window.addEventListener('appinstalled', () => {
-    localStorage.setItem('pwaInstalled', '1');
-    const installBtn = document.getElementById('installAppBtn');
-    if (installBtn) installBtn.style.display = 'none';
-    deferredPrompt = null;
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-    updateInstallButtonState();
-});
-
+// Instalacja PWA na kliknięcie przycisku
 async function installPWA() {
     const installBtn = document.getElementById('installAppBtn');
+
     if (!deferredPrompt) {
         if (isIOS) {
-            if (confirm('Aby zainstalować aplikację na iPhone:\n1. Kliknij ikonę udostępniania (kwadrat ze strzałką na dole)\n2. Przewiń w dół i wybierz "Do ekranu początkowego" (Add to Home Screen).\n\nCzy chcesz trwale ukryć ten przycisk pobierania na tym urządzeniu?')) {
+            if (confirm('Aby zainstalować aplikację na iPhone:\n1. Kliknij ikonę udostępniania (kwadrat ze strzałką)\n2. Wybierz "Do ekranu początkowego"\n\nCzy trwale ukryć ten przycisk na tym urządzeniu?')) {
                 localStorage.setItem('pwaInstalled', '1');
                 if (installBtn) installBtn.style.display = 'none';
             }
         } else {
-            if (confirm('Aplikacja jest już zainstalowana, uruchomiona w innej przeglądarce lub Twoje urządzenie nie wspiera automatycznej instalacji.\n\nCzy chcesz trwale ukryć ten przycisk pobierania na tym urządzeniu?')) {
+            if (confirm('Aplikacja jest już zainstalowana lub Twoja przeglądarka nie wspiera automatycznej instalacji.\n\nCzy trwale ukryć ten przycisk na tym urządzeniu?')) {
                 localStorage.setItem('pwaInstalled', '1');
                 if (installBtn) installBtn.style.display = 'none';
             }
         }
         return;
     }
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-        localStorage.setItem('pwaInstalled', '1');
-        if (installBtn) installBtn.style.display = 'none';
+
+    try {
+        await deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+            localStorage.setItem('pwaInstalled', '1');
+            if (installBtn) installBtn.style.display = 'none';
+        }
+    } catch (err) {
+        console.warn('[PWA] Install prompt error:', err);
     }
     deferredPrompt = null;
 }
+
+
+
 
 // --- Konfiguracja Supabase ---
 const SUPABASE_URL = 'https://alncaeqazzasaspmlxsj.supabase.co';

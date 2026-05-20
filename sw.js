@@ -1,4 +1,4 @@
-const CACHE_NAME = 'psie-breloki-v8';
+const CACHE_NAME = 'psie-breloki-v9';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',

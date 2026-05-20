@@ -1,4 +1,4 @@
-const CACHE_NAME = 'psie-breloki-v7';
+const CACHE_NAME = 'psie-breloki-v8';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -55,6 +55,38 @@ self.addEventListener('fetch', event => {
                 return response;
             })
             .catch(() => caches.match(event.request))
+    );
+});
+
+// --- Obsługa prawdziwych Web Push (działa gdy aplikacja jest ZAMKNIĘTA) ---
+self.addEventListener('push', event => {
+    if (!event.data) return;
+
+    let data;
+    try {
+        data = event.data.json();
+    } catch (e) {
+        data = {
+            title: 'Psie Breloki 🐾',
+            body: event.data.text(),
+            icon: './photos/podstawa.png',
+            badge: './photos/paw.png',
+            url: './panel.html'
+        };
+    }
+
+    const options = {
+        body: data.body ?? 'Masz nową wiadomość!',
+        icon: data.icon ?? './photos/podstawa.png',
+        badge: data.badge ?? './photos/paw.png',
+        tag: data.tag ?? 'psie-breloki-push',
+        data: { url: data.url ?? './panel.html' },
+        vibrate: [200, 100, 200, 100, 200],
+        renotify: true
+    };
+
+    event.waitUntil(
+        self.registration.showNotification(data.title ?? 'Psie Breloki 🐾', options)
     );
 });
 

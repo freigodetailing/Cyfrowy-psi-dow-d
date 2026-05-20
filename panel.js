@@ -842,7 +842,67 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // Pierwsze ładowanie
         const dogs = await loadUserPets();
-        
+
+        // --- Web Push: Rejestracja subskrypcji push z VAPID ---
+        const VAPID_PUBLIC_KEY = 'BDTVbYuGkW3O6cjE2pWcdJ2g1uSI-GVNZZ_QMD5JCCcVDaj8J5yuGk9MwKEV29Utl9Hj9CWhGR59jSjr0jylhbA';
+
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+
+        async function registerPushSubscription() {
+            if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+                console.warn('[WebPush] PushManager not supported on this device.');
+                return;
+            }
+            try {
+                const registration = await navigator.serviceWorker.ready;
+                
+                // Sprawdź czy subskrypcja już istnieje
+                let subscription = await registration.pushManager.getSubscription();
+                
+                if (!subscription) {
+                    // Zarejestruj nową subskrypcję push
+                    subscription = await registration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+                    });
+                    console.log('[WebPush] New push subscription created.');
+                } else {
+                    console.log('[WebPush] Existing push subscription found.');
+                }
+
+                // Zapisz subskrypcję w Supabase
+                const { data: { user } } = await supabaseClient.auth.getUser();
+                if (!user) return;
+
+                const subJson = subscription.toJSON();
+                const { error } = await supabaseClient
+                    .from('push_subscriptions')
+                    .upsert({
+                        user_id: user.id,
+                        endpoint: subJson.endpoint,
+                        p256dh: subJson.keys.p256dh,
+                        auth: subJson.keys.auth
+                    }, { onConflict: 'user_id,endpoint' });
+
+                if (error) {
+                    console.warn('[WebPush] Failed to save subscription to Supabase:', error.message);
+                } else {
+                    console.log('[WebPush] Push subscription saved to Supabase. Background notifications active!');
+                }
+            } catch (err) {
+                console.warn('[WebPush] Registration failed:', err.message);
+            }
+        }
+
         // Zezwolenie na powiadomienia i subskrypcja skanów
         if (dogs && dogs.length > 0) {
             if ('Notification' in window) {
@@ -850,6 +910,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 
                 if (Notification.permission === 'granted') {
                     setupScanNotificationSubscription(dogs);
+                    registerPushSubscription(); // Rejestracja Web Push w tle
                 } else if (Notification.permission === 'default' && !hasPrompted) {
                     // Prompt ONLY once automatically on first load to avoid spamming the user
                     Notification.requestPermission().then(permission => {
@@ -857,6 +918,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         updateNotificationSettingsStatus();
                         if (permission === 'granted') {
                             setupScanNotificationSubscription(dogs);
+                            registerPushSubscription(); // Rejestracja Web Push po udzieleniu zgody
                         }
                     });
                 } else {
@@ -866,6 +928,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
             }
         }
+
         
         // --- Badging API (Czerwona kropka na ikonie, jeśli pies zaginął) ---
         if ('setAppBadge' in navigator) {

@@ -1,8 +1,18 @@
 // PWA Installation Logic
 let deferredPrompt;
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+const isSafariOnIOS = isIOS && 
+                      /Safari/i.test(navigator.userAgent) && 
+                      !/CriOS/i.test(navigator.userAgent) && 
+                      !/FxiOS/i.test(navigator.userAgent) && 
+                      !/EdgiOS/i.test(navigator.userAgent) && 
+                      !/OPiOS/i.test(navigator.userAgent) && 
+                      !/wv|WebView/i.test(navigator.userAgent);
 
 function checkIsStandalone() {
+    const isWebView = /wv|WebView|FBAN|FBAV|Instagram|Line/i.test(navigator.userAgent) || 
+                      (isIOS && !window.navigator.standalone && !/Safari/i.test(navigator.userAgent));
+                      
     const isStandalone = 
            window.matchMedia('(display-mode: standalone)').matches || 
            window.matchMedia('(display-mode: fullscreen)').matches ||
@@ -12,7 +22,8 @@ function checkIsStandalone() {
            document.referrer.includes('android-app://') ||
            window.location.search.includes('mode=pwa') ||
            window.location.search.includes('utm_source=pwa') ||
-           sessionStorage.getItem('isPWAStandalone') === 'true';
+           sessionStorage.getItem('isPWAStandalone') === 'true' ||
+           isWebView;
            
     if (isStandalone) {
         sessionStorage.setItem('isPWAStandalone', 'true');
@@ -54,8 +65,8 @@ async function updateInstallButtonState() {
         }
     }
 
-    // 4. Jeśli nie jest zainstalowana, a system to iOS – pokazujemy przycisk (z instrukcją manualną)
-    if (isIOS) {
+    // 4. Jeśli nie jest zainstalowana, a system to iOS – pokazujemy przycisk (z instrukcją) TYLKO w Safari
+    if (isSafariOnIOS) {
         installBtn.style.display = 'flex';
     } else if (deferredPrompt) {
         // Jeśli przed załadowaniem DOM odpalił się event beforeinstallprompt, pokazujemy przycisk
@@ -93,16 +104,27 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function installPWA() {
+    const installBtn = document.getElementById('installAppBtn');
     if (!deferredPrompt) {
         if (isIOS) {
-            alert('Aby zainstalować aplikację na iPhone:\n1. Kliknij ikonę udostępniania (kwadrat ze strzałką na dole)\n2. Przewiń w dół i wybierz "Do ekranu początkowego" (Add to Home Screen)');
+            if (confirm('Aby zainstalować aplikację na iPhone:\n1. Kliknij ikonę udostępniania (kwadrat ze strzałką na dole)\n2. Przewiń w dół i wybierz "Do ekranu początkowego" (Add to Home Screen).\n\nCzy chcesz trwale ukryć ten przycisk pobierania na tym urządzeniu?')) {
+                localStorage.setItem('pwaInstalled', '1');
+                if (installBtn) installBtn.style.display = 'none';
+            }
         } else {
-            alert('Aplikacja jest już zainstalowana lub Twoja przeglądarka nie wspiera automatycznej instalacji. Możesz ją dodać ręcznie przez menu przeglądarki (Ustawienia -> Zainstaluj aplikację).');
+            if (confirm('Aplikacja jest już zainstalowana, uruchomiona w innej przeglądarce lub Twoje urządzenie nie wspiera automatycznej instalacji.\n\nCzy chcesz trwale ukryć ten przycisk pobierania na tym urządzeniu?')) {
+                localStorage.setItem('pwaInstalled', '1');
+                if (installBtn) installBtn.style.display = 'none';
+            }
         }
         return;
     }
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+        localStorage.setItem('pwaInstalled', '1');
+        if (installBtn) installBtn.style.display = 'none';
+    }
     deferredPrompt = null;
 }
 

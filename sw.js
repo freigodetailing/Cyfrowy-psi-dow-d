@@ -1,4 +1,4 @@
-const CACHE_NAME = 'psie-breloki-v5';
+const CACHE_NAME = 'psie-breloki-v7';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -12,7 +12,8 @@ const ASSETS_TO_CACHE = [
     './style.css',
     './script.js',
     './login.js',
-    './photos/podstawa.png'
+    './photos/podstawa.png',
+    './photos/paw.png'
 ];
 
 self.addEventListener('install', event => {
@@ -91,7 +92,7 @@ self.addEventListener('message', event => {
         self.registration.showNotification(`Aktywny spacer: ${petName}`, {
             body: `${duration} | ${steps} kroków`,
             icon: './photos/podstawa.png',
-            badge: './photos/podstawa.png',
+            badge: './photos/paw.png',
             tag: 'walk-status',
             renotify: false,
             silent: true,
@@ -110,7 +111,7 @@ self.addEventListener('message', event => {
             self.registration.showNotification("Pamiętasz o spacerze?", {
                 body: message,
                 icon: './photos/podstawa.png',
-                badge: './photos/podstawa.png',
+                badge: './photos/paw.png',
                 tag: 'motivation-reminder'
             });
         }, 1000 * 60 * 15);

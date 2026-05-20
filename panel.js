@@ -744,6 +744,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                     }, payload => {
                         console.log(`[REALTIME SCAN] New scan for ${petName}:`, payload.new);
                         
+                        if (localStorage.getItem('notifications_disabled') === 'true') return;
+
                         if ('Notification' in window && Notification.permission === 'granted') {
                             if (navigator.serviceWorker && navigator.serviceWorker.ready) {
                                 navigator.serviceWorker.ready.then(registration => {
@@ -789,11 +791,19 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
             
             const permission = Notification.permission;
-            if (permission === 'granted') {
+            const isManuallyDisabled = localStorage.getItem('notifications_disabled') === 'true';
+
+            if (permission === 'granted' && !isManuallyDisabled) {
                 statusText.textContent = "Aktywne 🟢";
                 statusText.style.background = "#ebfbee";
                 statusText.style.color = "#2bc06a";
-                if (enableBtn) enableBtn.style.display = 'none';
+                if (enableBtn) {
+                    enableBtn.style.display = 'flex';
+                    enableBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Wyłącz powiadomienia';
+                    enableBtn.style.color = '#e74c3c';
+                    enableBtn.style.background = '#fff5f5';
+                    enableBtn.style.border = '1px solid #fadbd8';
+                }
                 if (testBtn) testBtn.style.display = 'flex';
             } else if (permission === 'denied') {
                 statusText.textContent = "Zablokowane 🔴";
@@ -805,7 +815,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                 statusText.textContent = "Nieaktywne ⚪";
                 statusText.style.background = "#f1f3f5";
                 statusText.style.color = "#868e96";
-                if (enableBtn) enableBtn.style.display = 'flex';
+                if (enableBtn) {
+                    enableBtn.style.display = 'flex';
+                    enableBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Włącz powiadomienia';
+                    enableBtn.style.color = '';
+                    enableBtn.style.background = '';
+                    enableBtn.style.border = '';
+                }
                 if (testBtn) testBtn.style.display = 'none';
             }
         };
@@ -814,11 +830,31 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (enableNotificationsBtn) {
             enableNotificationsBtn.addEventListener('click', async () => {
                 if ('Notification' in window) {
-                    const permission = await Notification.requestPermission();
-                    localStorage.setItem('notification_prompted', 'true');
-                    updateNotificationSettingsStatus();
-                    if (permission === 'granted' && dogs) {
-                        setupScanNotificationSubscription(dogs);
+                    const isManuallyDisabled = localStorage.getItem('notifications_disabled') === 'true';
+                    
+                    if (Notification.permission === 'granted' && !isManuallyDisabled) {
+                        // Wyłącz powiadomienia
+                        localStorage.setItem('notifications_disabled', 'true');
+                        try {
+                            if ('serviceWorker' in navigator) {
+                                const reg = await navigator.serviceWorker.ready;
+                                const sub = await reg.pushManager.getSubscription();
+                                if (sub) await sub.unsubscribe();
+                            }
+                        } catch(e) {}
+                        updateNotificationSettingsStatus();
+                    } else {
+                        // Włącz powiadomienia
+                        const permission = await Notification.requestPermission();
+                        localStorage.setItem('notification_prompted', 'true');
+                        localStorage.setItem('notifications_disabled', 'false');
+                        updateNotificationSettingsStatus();
+                        if (permission === 'granted' && dogs) {
+                            setupScanNotificationSubscription(dogs);
+                            if (typeof registerPushSubscription === 'function') {
+                                registerPushSubscription();
+                            }
+                        }
                     }
                 }
             });

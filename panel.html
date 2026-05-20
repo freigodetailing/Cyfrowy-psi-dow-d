@@ -308,6 +308,24 @@
                 </div>
             </div>
 
+            <!-- Powiadomienia -->
+            <div class="settings-section">
+                <h4><i class="fa-solid fa-bell"></i> Powiadomienia push</h4>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.8rem; line-height: 1.4;">
+                    Otrzymuj natychmiastowe powiadomienia na telefonie, gdy ktoś zeskanuje brelok Twojego pupila.
+                </p>
+                <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-light); padding: 0.75rem 1rem; border-radius: 14px; margin-bottom: 0.8rem; border: 1.5px solid #f1f1f5;">
+                    <span style="font-size: 0.88rem; font-weight: 600;">Status usługi</span>
+                    <span id="notificationStatusText" style="font-size: 0.85rem; font-weight: 700; padding: 4px 10px; border-radius: 20px;">Ładowanie...</span>
+                </div>
+                <button id="enableNotificationsBtn" class="btn-settings-action w-100" style="display: none; justify-content: center; margin-bottom: 0.5rem; gap: 0.5rem; align-items: center;">
+                    <i class="fa-solid fa-bell"></i> Włącz powiadomienia
+                </button>
+                <button id="testNotificationsBtn" class="btn-settings-action w-100" style="display: none; justify-content: center; gap: 0.5rem; align-items: center;">
+                    <i class="fa-solid fa-circle-play"></i> Wyślij testowe powiadomienie
+                </button>
+            </div>
+
             <!-- Sesja -->
             <div class="settings-section auth-section">
                 <h4><i class="fa-solid fa-shield-halved"></i> Sesja</h4>

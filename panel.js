@@ -155,6 +155,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             openSettingsBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 settingsModal.classList.add('active');
+                if (typeof updateNotificationSettingsStatus === 'function') {
+                    updateNotificationSettingsStatus();
+                }
             });
         }
 
@@ -164,6 +167,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             navSettingsBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 settingsModal.classList.add('active');
+                if (typeof updateNotificationSettingsStatus === 'function') {
+                    updateNotificationSettingsStatus();
+                }
             });
         }
 
@@ -724,19 +730,106 @@ document.addEventListener("DOMContentLoaded", async () => {
             });
         };
 
+        // --- Notification Settings Modal Management ---
+        const updateNotificationSettingsStatus = () => {
+            const statusText = document.getElementById('notificationStatusText');
+            const enableBtn = document.getElementById('enableNotificationsBtn');
+            const testBtn = document.getElementById('testNotificationsBtn');
+            
+            if (!statusText) return;
+            
+            if (!('Notification' in window)) {
+                statusText.textContent = "Niewspierane ❌";
+                statusText.style.background = "#fff5f5";
+                statusText.style.color = "#e74c3c";
+                if (enableBtn) enableBtn.style.display = 'none';
+                if (testBtn) testBtn.style.display = 'none';
+                return;
+            }
+            
+            const permission = Notification.permission;
+            if (permission === 'granted') {
+                statusText.textContent = "Aktywne 🟢";
+                statusText.style.background = "#ebfbee";
+                statusText.style.color = "#2bc06a";
+                if (enableBtn) enableBtn.style.display = 'none';
+                if (testBtn) testBtn.style.display = 'flex';
+            } else if (permission === 'denied') {
+                statusText.textContent = "Zablokowane 🔴";
+                statusText.style.background = "#fff5f5";
+                statusText.style.color = "#e74c3c";
+                if (enableBtn) enableBtn.style.display = 'none';
+                if (testBtn) testBtn.style.display = 'none';
+            } else {
+                statusText.textContent = "Nieaktywne ⚪";
+                statusText.style.background = "#f1f3f5";
+                statusText.style.color = "#868e96";
+                if (enableBtn) enableBtn.style.display = 'flex';
+                if (testBtn) testBtn.style.display = 'none';
+            }
+        };
+
+        const enableNotificationsBtn = document.getElementById('enableNotificationsBtn');
+        if (enableNotificationsBtn) {
+            enableNotificationsBtn.addEventListener('click', async () => {
+                if ('Notification' in window) {
+                    const permission = await Notification.requestPermission();
+                    localStorage.setItem('notification_prompted', 'true');
+                    updateNotificationSettingsStatus();
+                    if (permission === 'granted' && dogs) {
+                        setupScanNotificationSubscription(dogs);
+                    }
+                }
+            });
+        }
+
+        const testNotificationsBtn = document.getElementById('testNotificationsBtn');
+        if (testNotificationsBtn) {
+            testNotificationsBtn.addEventListener('click', () => {
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+                        navigator.serviceWorker.ready.then(registration => {
+                            registration.showNotification("Testowe powiadomienie! 🐾", {
+                                body: "Świetnie! Powiadomienia w Cyfrowym Dowodzie Pupila działają bez zarzutu.",
+                                icon: "./photos/podstawa.png",
+                                badge: "./photos/podstawa.png",
+                                tag: "test-notification",
+                                vibrate: [100, 50, 100],
+                                renotify: true
+                            });
+                        });
+                    } else {
+                        new Notification("Testowe powiadomienie! 🐾", {
+                            body: "Świetnie! Powiadomienia w Cyfrowym Dowodzie Pupila działają bez zarzutu.",
+                            icon: "./photos/podstawa.png"
+                        });
+                    }
+                }
+            });
+        }
+
         // Pierwsze ładowanie
         const dogs = await loadUserPets();
         
         // Zezwolenie na powiadomienia i subskrypcja skanów
         if (dogs && dogs.length > 0) {
             if ('Notification' in window) {
-                if (Notification.permission === 'default') {
+                const hasPrompted = localStorage.getItem('notification_prompted');
+                
+                if (Notification.permission === 'granted') {
+                    setupScanNotificationSubscription(dogs);
+                } else if (Notification.permission === 'default' && !hasPrompted) {
+                    // Prompt ONLY once automatically on first load to avoid spamming the user
                     Notification.requestPermission().then(permission => {
+                        localStorage.setItem('notification_prompted', 'true');
+                        updateNotificationSettingsStatus();
                         if (permission === 'granted') {
                             setupScanNotificationSubscription(dogs);
                         }
                     });
-                } else if (Notification.permission === 'granted') {
+                } else {
+                    // Skip repeat prompts to respect user preference, just run realtime subscription
+                    console.log(`[Notification] Auto-prompt skipped. Permission: ${Notification.permission}, prompted: ${hasPrompted}`);
                     setupScanNotificationSubscription(dogs);
                 }
             }

@@ -863,6 +863,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         const testNotificationsBtn = document.getElementById('testNotificationsBtn');
         if (testNotificationsBtn) {
             testNotificationsBtn.addEventListener('click', () => {
+                if (localStorage.getItem('notifications_disabled') === 'true') {
+                    alert("Powiadomienia są wyłączone w ustawieniach.");
+                    return;
+                }
                 if ('Notification' in window && Notification.permission === 'granted') {
                     if (navigator.serviceWorker && navigator.serviceWorker.ready) {
                         navigator.serviceWorker.ready.then(registration => {

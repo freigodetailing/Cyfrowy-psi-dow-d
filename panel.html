@@ -10,16 +10,43 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=5.0">
+    <link rel="stylesheet" href="style.css?v=5.1">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="apple-touch-icon" href="logo.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+        // Temat kolorystyczny
         const savedTheme = localStorage.getItem('appTheme') || 'orange';
         if (savedTheme !== 'orange') {
             document.documentElement.setAttribute('data-theme', savedTheme);
         }
+        // Ukrycie przycisku instalacji PRZED załadowaniem DOM
+        // Działa synchronicznie — żaden JS czy event nie może pokazać przycisku wcześniej
+        (function() {
+            var standalone =
+                window.matchMedia('(display-mode: standalone)').matches ||
+                window.matchMedia('(display-mode: fullscreen)').matches ||
+                window.matchMedia('(display-mode: minimal-ui)').matches ||
+                window.navigator.standalone === true ||
+                document.referrer.indexOf('android-app://') !== -1 ||
+                window.location.search.indexOf('mode=pwa') !== -1 ||
+                sessionStorage.getItem('isPWAStandalone') === 'true' ||
+                localStorage.getItem('pwaInstalled') === '1';
+            if (standalone) {
+                document.documentElement.setAttribute('data-pwa', 'installed');
+                sessionStorage.setItem('isPWAStandalone', 'true');
+                localStorage.setItem('pwaInstalled', '1');
+            }
+        })();
     </script>
+    <style>
+        /* Ukryj przycisk instalacji w trybie standalone (CSS poziom - bez JS) */
+        @media (display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui) {
+            #installAppBtn { display: none !important; }
+        }
+        /* Ukryj gdy HTML ma atrybut data-pwa=installed (ustawiony przez inline script) */
+        html[data-pwa="installed"] #installAppBtn { display: none !important; }
+    </style>
 </head>
 <body>
 
@@ -63,7 +90,7 @@
                         <p class="dash-subtitle"><span id="userEmailDisplay" class="user-names-pill">...</span></p>
                     </div>
                     <div class="dash-header-actions">
-                        <a href="javascript:void(0)" id="installAppBtn" class="dash-icon-btn" onclick="installPWA()" title="Zainstaluj aplikację" style="display: none;">
+                        <a href="javascript:void(0)" id="installAppBtn" class="dash-icon-btn pwa-install-btn" onclick="installPWA()" title="Zainstaluj aplikację" style="display: none;">
                             <i class="fa-solid fa-download"></i>
                         </a>
 

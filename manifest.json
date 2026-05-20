@@ -2,7 +2,7 @@
     "name": "Cyfrowy Dowód Pupila",
     "short_name": "Dowód Pupila",
     "description": "Cyfrowy Profil i Dowód Twojego Pupila",
-    "start_url": "./index.html",
+    "start_url": "./index.html?mode=pwa",
     "display": "standalone",
     "background_color": "#fbfbfd",
     "theme_color": "#ff7e67",
@@ -25,14 +25,14 @@
             "name": "Moje Pupil",
             "short_name": "Pupile",
             "description": "Lista Twoich przypisanych pupili",
-            "url": "./panel.html",
+            "url": "./panel.html?mode=pwa",
             "icons": [{ "src": "logo.png", "sizes": "192x192" }]
         },
         {
             "name": "Zeskanuj Brelok",
             "short_name": "Skanuj",
             "description": "Dodaj nowy brelok NFC",
-            "url": "./panel.html?action=assign",
+            "url": "./panel.html?action=assign&mode=pwa",
             "icons": [{ "src": "logo.png", "sizes": "192x192" }]
         }
     ],

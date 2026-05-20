@@ -3,12 +3,22 @@ let deferredPrompt;
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
 function checkIsStandalone() {
-    return window.matchMedia('(display-mode: standalone)').matches || 
+    const isStandalone = 
+           window.matchMedia('(display-mode: standalone)').matches || 
            window.matchMedia('(display-mode: fullscreen)').matches ||
            window.matchMedia('(display-mode: minimal-ui)').matches ||
            window.matchMedia('(display-mode: window-controls-overlay)').matches ||
            window.navigator.standalone === true ||
-           document.referrer.includes('android-app://');
+           document.referrer.includes('android-app://') ||
+           window.location.search.includes('mode=pwa') ||
+           window.location.search.includes('utm_source=pwa') ||
+           sessionStorage.getItem('isPWAStandalone') === 'true';
+           
+    if (isStandalone) {
+        sessionStorage.setItem('isPWAStandalone', 'true');
+        localStorage.setItem('pwaInstalled', '1');
+    }
+    return isStandalone;
 }
 
 // Funkcja sprawdzająca status instalacji i zarządzająca widocznością przycisku

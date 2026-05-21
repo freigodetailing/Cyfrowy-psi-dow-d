@@ -179,9 +179,9 @@ function calculateAge(ageInput) {
 }
 
 const DEFAULT_PROFILE = {
-    dogName: "Nieznany Pies",
+    dogName: "Bezimienny",
     dogAge: "Brak danych",
-    dogPhotoUrl: "./photos/podstawa.png",
+    dogPhotoUrl: "logo.png",
     dogHealth: "Brak danych. W razie znalezienia psa, natychmiast skontaktuj się z właścicielem lub weterynarzem.",
     ownerName: "Brak danych",
     ownerPhone: "Brak danych",
@@ -204,12 +204,12 @@ async function fetchDogData(tagId) {
             return DEFAULT_PROFILE;
         }
         
-        if (data && data['IMIE PSA']) {
-            return {
-                id: data['ID'],
-                dogName: data['IMIE PSA'],
-                dogAge: data['WIEK PSA'],
-                dogGender: data['PLEC'] || 'Brak danych',
+        if (data) {
+              return {
+                  id: data['ID'],
+                  dogName: (data['IMIE PSA'] && data['IMIE PSA'] !== 'null') ? data['IMIE PSA'] : 'Bezimienny',
+                  dogAge: data['WIEK PSA'],
+                  dogGender: data['PLEC'] || 'Brak danych',
                 dogBreed: data['RASA'] || 'Brak danych',
                 ownerName: data['IMIE PANA/I'],
                 ownerPhone: data['NR TELEFONU'],
@@ -276,8 +276,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     // Obsługa braku zdjęcia (szary placeholder)
     let finalImageUrl = profileData.dogPhotoUrl;
-    if (!finalImageUrl || finalImageUrl === "./dog_sample.png" || finalImageUrl === "Brak danych" || finalImageUrl === "" || finalImageUrl === "./1.png") {
-        finalImageUrl = "./photos/podstawa.png";
+    if (!finalImageUrl || finalImageUrl === "null" || finalImageUrl === "./dog_sample.png" || finalImageUrl === "Brak danych" || finalImageUrl === "" || finalImageUrl === "./1.png" || finalImageUrl === "./photos/podstawa.png") {
+        finalImageUrl = "logo.png";
     } else if (!finalImageUrl.startsWith('http') && !finalImageUrl.startsWith('./photos/')) {
         // Jeśli w arkuszu jest sama nazwa pliku (np. "1.jpg") albo "./1.jpg"
         finalImageUrl = finalImageUrl.replace('./', '');

@@ -143,7 +143,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 function getFinalImageUrl(url) {
-    if (!url || url === "Brak danych" || url === "" || url === "./dog_sample.png" || url === "./1.png") return "./photos/podstawa.png";
+    if (!url || url === "null" || url === "Brak danych" || url === "" || url === "./dog_sample.png" || url === "./1.png" || url === "./photos/podstawa.png") return "logo.png";
     if (!url.startsWith('http') && !url.startsWith('./photos/')) {
         return `./photos/${url.replace('./', '')}`;
     }
@@ -699,11 +699,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                             ? `<div class="status-alarm"><span class="status-dot-alarm"></span>Alarm aktywny</div>`
                             : `<div class="status-active"><span class="status-dot"></span>Aktywny</div>`;
 
+                        const displayName = (dog['IMIE PSA'] && dog['IMIE PSA'] !== 'null') ? dog['IMIE PSA'] : 'Bezimienny';
+
                         card.innerHTML = `
-                            <img src="${imgUrl}" alt="${dog['IMIE PSA']}" onerror="this.onerror=null; this.src='./photos/podstawa.png';">
+                            <img src="${imgUrl}" alt="${displayName}" onerror="this.onerror=null; this.src='logo.png';">
                             <div class="pet-card-info">
                                 <div class="pet-card-info-header">
-                                    <h4>${dog['IMIE PSA']}</h4>
+                                    <h4>${displayName}</h4>
                                     ${statusHtml}
                                 </div>
                                 <span>Przejdź do wizytówki <i class="fa-solid fa-arrow-right"></i></span>
@@ -740,7 +742,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             
             dogsList.forEach(dog => {
                 const petId = dog.ID;
-                const petName = dog['IMIE PSA'];
+                const petName = (dog['IMIE PSA'] && dog['IMIE PSA'] !== 'null') ? dog['IMIE PSA'] : 'Bezimienny';
                 const petAvatar = getFinalImageUrl(dog['ZDJECIE']);
                 
                 supabaseClient
@@ -1100,11 +1102,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (e.target === nfcModalOverlay) hideAssignModal();
         });
 
-        backToInitialBtn.addEventListener('click', () => {
-            if (scanAbortController) scanAbortController.abort();
-            assignInitialView.classList.remove('hidden');
-            assignScanView.classList.add('hidden');
-        });
+        if (backToInitialBtn) {
+            backToInitialBtn.addEventListener('click', () => {
+                if (scanAbortController) scanAbortController.abort();
+                if (assignInitialView) assignInitialView.classList.remove('hidden');
+                if (assignScanView) assignScanView.classList.add('hidden');
+            });
+        }
 
         // Funkcja wykonująca samo przypisanie w DB
         const performAssignment = async (tagId) => {
@@ -1187,69 +1191,71 @@ document.addEventListener("DOMContentLoaded", async () => {
             await performAssignment(idValue);
             
             assignManualBtn.disabled = false;
-            assignManualBtn.innerHTML = '<i class="fa-solid fa-check-double"></i> Zatwierdź kod ID';
+            assignManualBtn.innerHTML = 'Zatwierdź kod ID';
         });
 
-        // Obsługa Skanowania NFC
-        startNfcScanBtn.addEventListener('click', async () => {
-            if (!('NDEFReader' in window)) {
-                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-                if (isIOS) {
-                    showResultModal('info', "Skanowanie na iPhonie", "Apple blokuje skaner NFC wewnątrz przeglądarki. Aby przypisać ten brelok, zamknij to okienko, upewnij się, że masz odblokowany telefon i po prostu zbliż brelok do jego górnej części. Kiedy na ekranie pojawi się powiadomienie (link) – kliknij w nie. Zostaniesz przeniesiony na stronę, gdzie będziesz mógł jednym kliknięciem przypisać brelok!");
-                } else {
-                    showResultModal(false, "Błąd NFC", "Twoja przeglądarka lub system nie obsługują skanowania NFC wewnątrz strony. Spróbuj zbliżyć brelok do górnej części telefonu bez uruchamiania skanera.");
+        // Obsługa Skanowania NFC (wyłączona)
+        if (startNfcScanBtn) {
+            startNfcScanBtn.addEventListener('click', async () => {
+                if (!('NDEFReader' in window)) {
+                    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+                    if (isIOS) {
+                        showResultModal('info', "Skanowanie na iPhonie", "Apple blokuje skaner NFC wewnątrz przeglądarki. Aby przypisać ten brelok, zamknij to okienko, upewnij się, że masz odblokowany telefon i po prostu zbliż brelok do jego górnej części. Kiedy na ekranie pojawi się powiadomienie (link) – kliknij w nie. Zostaniesz przeniesiony na stronę, gdzie będziesz mógł jednym kliknięciem przypisać brelok!");
+                    } else {
+                        showResultModal(false, "Błąd NFC", "Twoja przeglądarka lub system nie obsługują skanowania NFC wewnątrz strony. Spróbuj zbliżyć brelok do górnej części telefonu bez uruchamiania skanera.");
+                    }
+                    return;
                 }
-                return;
-            }
 
-            try {
-                assignInitialView.classList.add('hidden');
-                assignScanView.classList.remove('hidden');
-                
-                ndef = new NDEFReader();
-                scanAbortController = new AbortController();
-                
-                await ndef.scan({ signal: scanAbortController.signal });
+                try {
+                    if (assignInitialView) assignInitialView.classList.add('hidden');
+                    if (assignScanView) assignScanView.classList.remove('hidden');
+                    
+                    ndef = new NDEFReader();
+                    scanAbortController = new AbortController();
+                    
+                    await ndef.scan({ signal: scanAbortController.signal });
 
-                ndef.onreading = async (event) => {
-                    let scannedId = null;
-                    for (const record of event.message.records) {
-                        if (record.recordType === "url") {
-                            const textDecoder = new TextDecoder();
-                            const url = textDecoder.decode(record.data);
-                            try {
-                                const urlObj = new URL(url.startsWith('http') ? url : `https://x.y/${url}`);
-                                scannedId = urlObj.searchParams.get('id');
-                            } catch(e) {}
-                        } else if (record.recordType === "text") {
-                            const textDecoder = new TextDecoder();
-                            const txt = textDecoder.decode(record.data);
-                            if (txt.includes('id=')) {
-                                scannedId = txt.split('id=')[1].split('&')[0];
+                    ndef.onreading = async (event) => {
+                        let scannedId = null;
+                        for (const record of event.message.records) {
+                            if (record.recordType === "url") {
+                                const textDecoder = new TextDecoder();
+                                const url = textDecoder.decode(record.data);
+                                try {
+                                    const urlObj = new URL(url.startsWith('http') ? url : `https://x.y/${url}`);
+                                    scannedId = urlObj.searchParams.get('id');
+                                } catch(e) {}
+                            } else if (record.recordType === "text") {
+                                const textDecoder = new TextDecoder();
+                                const txt = textDecoder.decode(record.data);
+                                if (txt.includes('id=')) {
+                                    scannedId = txt.split('id=')[1].split('&')[0];
+                                }
                             }
                         }
-                    }
 
-                    if (scannedId) {
-                        await performAssignment(scannedId);
-                    } else {
-                        showResultModal(false, "Błąd", "Odczytano tag, ale nie znaleziono w nim poprawnego ID pupila.");
-                        assignInitialView.classList.remove('hidden');
-                        assignScanView.classList.add('hidden');
-                    }
-                };
+                        if (scannedId) {
+                            await performAssignment(scannedId);
+                        } else {
+                            showResultModal(false, "Błąd", "Odczytano tag, ale nie znaleziono w nim poprawnego ID pupila.");
+                            if (assignInitialView) assignInitialView.classList.remove('hidden');
+                            if (assignScanView) assignScanView.classList.add('hidden');
+                        }
+                    };
 
-                ndef.onreadingerror = () => {
-                    showResultModal(false, "Błąd", "Wystąpił problem z odczytem taga NFC. Spróbuj ponownie.");
-                };
+                    ndef.onreadingerror = () => {
+                        showResultModal(false, "Błąd", "Wystąpił problem z odczytem taga NFC. Spróbuj ponownie.");
+                    };
 
-            } catch (error) {
-                console.error("NFC error:", error);
-                showResultModal(false, "Błąd", "Nie udało się uruchomić skanera NFC. Upewnij się, że funkcja NFC jest włączona w ustawieniach telefonu.");
-                assignInitialView.classList.remove('hidden');
-                assignScanView.classList.add('hidden');
-            }
-        });
+                } catch (error) {
+                    console.error("NFC error:", error);
+                    showResultModal(false, "Błąd", "Nie udało się uruchomić skanera NFC. Upewnij się, że funkcja NFC jest włączona w ustawieniach telefonu.");
+                    if (assignInitialView) assignInitialView.classList.remove('hidden');
+                    if (assignScanView) assignScanView.classList.add('hidden');
+                }
+            });
+        }
 
     } catch (err) {
         console.error("Dashboard error:", err);

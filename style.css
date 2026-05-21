@@ -5404,18 +5404,18 @@ input:checked + .slider:before { transform: translateX(24px); }
     }
     
     .image-outer-ring {
-        width: 115px !important;
-        height: 115px !important;
-        margin-bottom: 0.5rem !important;
-        padding: 5px !important;
+        width: 170px !important;
+        height: 170px !important;
+        margin-bottom: 0.6rem !important;
+        padding: 6px !important;
     }
     
     .gender-badge {
-        top: 4px !important;
-        right: 9px !important;
-        width: 26px !important;
-        height: 26px !important;
-        font-size: 0.95rem !important;
+        top: 8px !important;
+        right: 14px !important;
+        width: 30px !important;
+        height: 30px !important;
+        font-size: 1.05rem !important;
     }
     
     .dog-name {
@@ -5451,27 +5451,52 @@ input:checked + .slider:before { transform: translateX(24px); }
     }
     
     .info-item {
-        padding: 0.9rem 1rem !important;
-        border-radius: 18px !important;
+        padding: 1.2rem 1.2rem !important;
+        border-radius: 20px !important;
     }
     
     .info-icon {
-        width: 42px !important;
-        height: 42px !important;
-        font-size: 1.1rem !important;
-        margin-right: 0.8rem !important;
+        width: 48px !important;
+        height: 48px !important;
+        font-size: 1.2rem !important;
+        margin-right: 1rem !important;
     }
     
     .info-text h3 {
-        font-size: 0.85rem !important;
-        margin-bottom: 0.15rem !important;
+        font-size: 0.9rem !important;
+        margin-bottom: 0.2rem !important;
     }
     
     .info-text p {
-        font-size: 1.08rem !important;
+        font-size: 1.15rem !important;
         line-height: 1.45 !important;
     }
 }
 
 
 
+
+/* ===========================
+   PWA INSTALL BUTTON — HIDE IN STANDALONE MODE
+   Działa na poziomie CSS, niezależnie od JavaScript
+   =========================== */
+
+/* CSS Media Query — standalone mode (otwarta jako zainstalowana PWA) */
+@media (display-mode: standalone),
+       (display-mode: fullscreen),
+       (display-mode: minimal-ui) {
+    #installAppBtn,
+    .pwa-install-btn {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
+}
+
+/* Ukryj gdy HTML ma data-pwa=installed (ustawiony przez inline script w head) */
+html[data-pwa='installed'] #installAppBtn,
+html[data-pwa='installed'] .pwa-install-btn {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}

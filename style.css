@@ -5525,3 +5525,17 @@ html[data-pwa='installed'] .pwa-install-btn {
     margin-bottom: 15px;
     min-height: 44px;
 }
+
+.forgot-password-link {
+    text-align: right;
+    margin-top: 8px;
+}
+.forgot-password-link a {
+    color: #ff7e67;
+    font-size: 0.85rem;
+    text-decoration: none;
+    font-weight: 500;
+}
+.forgot-password-link a:hover {
+    text-decoration: underline;
+}

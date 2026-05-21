@@ -37,7 +37,7 @@
                 <div class="login-card-icon">
                     <i class="fa-solid fa-address-card"></i>
                 </div>
-                <h2>Dołącz do Nas</h2>
+                <h2 id="mainTitle">Dołącz do Nas</h2>
                 <p id="subtitle">Zaloguj się, aby zarządzać brelokami</p>
 
                 <div class="auth-tabs">
@@ -60,8 +60,8 @@
                         <input type="email" id="email" required placeholder="np. jan@example.com">
                     </div>
 
-                    <div class="form-group">
-                        <label for="password"><i class="fa-solid fa-lock"></i> Hasło</label>
+                    <div class="form-group" id="passwordGroup">
+                        <label for="password" id="passwordLabel"><i class="fa-solid fa-lock"></i> Hasło</label>
                         <div class="password-input-wrapper">
                             <input type="password" id="password" required placeholder="••••••••">
                             <button type="button" class="toggle-password"
@@ -69,6 +69,13 @@
                                 <i class="fa-solid fa-eye"></i>
                             </button>
                         </div>
+                        <div class="forgot-password-link" id="forgotPasswordLink">
+                            <a href="#" onclick="switchMode('forgot'); return false;">Zapomniałeś hasła?</a>
+                        </div>
+                    </div>
+                    
+                    <div class="forgot-password-link hidden" id="backToLoginLink" style="text-align: center;">
+                        <a href="#" onclick="switchMode('login'); return false;"><i class="fa-solid fa-arrow-left"></i> Wróć do logowania</a>
                     </div>
 
 
@@ -77,7 +84,7 @@
                         Zaloguj się <i class="fa-solid fa-arrow-right"></i>
                     </button>
 
-                    <div class="auth-divider">
+                    <div class="auth-divider" id="googleDivider">
                         <span>lub</span>
                     </div>
                     

@@ -196,7 +196,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     
     // --- Check hash for password recovery ---
-    if (window.location.hash && window.location.hash.includes('type=recovery')) {
+    if (isRecovery) {
         switchMode('update-password');
     }
 

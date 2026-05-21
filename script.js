@@ -253,14 +253,22 @@ document.addEventListener("DOMContentLoaded", async () => {
         const assignOrphanBtn = document.getElementById('assignOrphanBtn');
         
         if (profileData.isOrphan) {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) {
+                // Jeśli użytkownik jest zalogowany i skanuje sierotę, automatycznie przypisujemy
+                // To omija błąd Androida ładującego profil zamiast uruchamiania Web NFC
+                window.location.href = `panel.html?action=assign_auto&id=${tagId}`;
+                return;
+            }
+            
             if (orphanAssignSection) orphanAssignSection.classList.remove('hidden');
             if (assignOrphanBtn) {
                 assignOrphanBtn.onclick = () => {
-                    window.location.href = `panel.html?action=assign&id=${tagId}`;
+                    window.location.href = `panel.html?action=assign_auto&id=${tagId}`;
                 };
             }
-        } else {
-            if (orphanAssignSection) orphanAssignSection.classList.add('hidden');
+            document.getElementById('profileContent').classList.add('hidden');
+            return; // Zatrzymujemy ładowanie dalszych danych, bo brelok jest pusty
         }
     
     // Automatyczne kalkulowanie wieku, jeśli została podana data (lub tekst bezpośrednio z API)

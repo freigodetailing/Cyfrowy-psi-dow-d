@@ -37,9 +37,13 @@ window.handleGoogleCallback = async (response) => {
         const urlParams = new URLSearchParams(window.location.search);
         const redirectId = urlParams.get('redirectId') || '12345';
         const source = urlParams.get('source') || 'dashboard';
+        const action = urlParams.get('action');
+        const petId = urlParams.get('id');
 
         if (source === 'profile') {
             window.location.href = `index.html?id=${redirectId}`;
+        } else if ((action === 'assign' || action === 'assign_auto') && petId) {
+            window.location.href = `panel.html?action=${action}&id=${petId}`;
         } else {
             window.location.href = `panel.html`;
         }
@@ -58,6 +62,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const redirectId = urlParams.get('redirectId') || '12345';
     const source = urlParams.get('source') || 'dashboard';
+    const action = urlParams.get('action');
+    const petId = urlParams.get('id');
 
     // Sprawdź czy to link odzyskiwania hasła (z hash lub ze zdarzenia)
     const isRecoveryHash = window.location.hash && window.location.hash.includes('type=recovery');
@@ -68,6 +74,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (session && !isRecoveryMode) {
         if (source === 'profile') {
             window.location.href = `index.html?id=${redirectId}`;
+        } else if ((action === 'assign' || action === 'assign_auto') && petId) {
+            window.location.href = `panel.html?action=${action}&id=${petId}`;
         } else {
             window.location.href = `panel.html`;
         }
@@ -238,7 +246,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (error) throw error;
 
                 if (data.session) {
-                    window.location.href = source === 'profile' ? `index.html?id=${redirectId}` : `panel.html`;
+                    if (source === 'profile') {
+                        window.location.href = `index.html?id=${redirectId}`;
+                    } else if (currentMode === 'register' && (action === 'assign' || action === 'assign_auto') && petId) {
+                        window.location.href = `panel.html?action=${action}&id=${petId}`;
+                    } else {
+                        window.location.href = `panel.html`;
+                    }
                 } else {
                     successMsg.textContent = 'Rejestracja udana! Sprawdź skrzynkę e-mail i kliknij link weryfikacyjny.';
                     successMsg.classList.remove('hidden');
@@ -262,7 +276,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // --- LOGOWANIE ---
                 const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
                 if (error) throw error;
-                window.location.href = source === 'profile' ? `index.html?id=${redirectId}` : `panel.html`;
+                if (source === 'profile') {
+                    window.location.href = `index.html?id=${redirectId}`;
+                } else if ((action === 'assign' || action === 'assign_auto') && petId) {
+                    window.location.href = `panel.html?action=${action}&id=${petId}`;
+                } else {
+                    window.location.href = `panel.html`;
+                }
                 
             } else if (currentMode === 'forgot') {
                 if (!email) throw new Error("Podaj e-mail do zresetowania hasła.");
@@ -287,7 +307,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 successMsg.classList.remove('hidden');
                 
                 setTimeout(() => {
-                    window.location.href = source === 'profile' ? `index.html?id=${redirectId}` : `panel.html`;
+                    if (source === 'profile') {
+                        window.location.href = `index.html?id=${redirectId}`;
+                    } else if ((action === 'assign' || action === 'assign_auto') && petId) {
+                        window.location.href = `panel.html?action=${action}&id=${petId}`;
+                    } else {
+                        window.location.href = `panel.html`;
+                    }
                 }, 2000);
             }
 

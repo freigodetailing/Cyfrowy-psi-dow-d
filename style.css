@@ -1091,8 +1091,9 @@ footer {
 
 .edit-modal-content {
     max-width: 450px;
-    max-height: 85vh;
-    overflow-y: auto;
+    max-height: 85vh !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
     text-align: left;
     padding: 1.5rem;
 }
@@ -1101,7 +1102,9 @@ footer {
     .edit-modal-content {
         width: 95%;
         padding: 1.2rem;
-        max-height: 90vh;
+        max-height: 85vh !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
     }
 }
 
@@ -4975,6 +4978,9 @@ input:checked + .slider:before { transform: translateX(24px); }
     border: 1.5px solid #f1f1f5 !important;
     border-radius: 28px !important;
     box-shadow: 0 25px 60px rgba(15, 23, 42, 0.12) !important;
+    max-height: 85vh !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
     padding: 2.2rem 1.4rem 1.6rem !important; /* Added space for close button and title */
     width: 100% !important;
     max-width: 400px !important;

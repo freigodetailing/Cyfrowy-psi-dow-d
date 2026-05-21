@@ -1,0 +1,166 @@
+/* =========================================
+   TUTORIAL ONBOARDING (JEDNORAZOWY PORADNIK) - WERSJA LEKKA I SZYBKA
+   ========================================= */
+
+.tutorial-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6); /* Zwykłe półprzezroczyste tło bez blur */
+    z-index: 10000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+    padding: 1.5rem;
+}
+
+.tutorial-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.tutorial-modal {
+    background: #ffffff;
+    border-radius: 24px;
+    width: 100%;
+    max-width: 400px;
+    padding: 2.5rem 1.5rem 1.5rem;
+    position: relative;
+    text-align: center;
+    transform: translateY(0);
+    transition: transform 0.3s ease;
+    overflow: hidden;
+}
+
+.tutorial-overlay.hidden .tutorial-modal {
+    transform: translateY(20px);
+}
+
+.tutorial-skip-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    z-index: 10;
+}
+
+.tutorial-skip-btn:hover {
+    color: #64748b;
+}
+
+.tutorial-content {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    /* Prosta animacja wejścia bez dużego obciążenia */
+    animation: fadeIn 0.3s ease forwards;
+}
+
+.tutorial-content.active {
+    display: flex;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.tutorial-icon-wrapper {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%; /* Proste kółko */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+/* Zwykłe solidne kolory, bez gradientów i zaawansowanych cieni */
+#tutorialStep1 .tutorial-icon-wrapper { background: #e6f9ed; }
+#tutorialStep1 .tutorial-icon-animate { color: #22c55e; }
+
+#tutorialStep2 .tutorial-icon-wrapper { background: #ebf3fe; }
+#tutorialStep2 .tutorial-icon-animate { color: #3b82f6; }
+
+#tutorialStep3 .tutorial-icon-wrapper { background: #fdf0fe; }
+#tutorialStep3 .tutorial-icon-animate { color: #d946ef; }
+
+#tutorialStep4 .tutorial-icon-wrapper { background: #fef8e7; }
+#tutorialStep4 .tutorial-icon-animate { color: #f59e0b; }
+
+.tutorial-icon-animate {
+    font-size: 2rem;
+    /* Usunięto animację odbijania dla oszczędności baterii i CPU */
+}
+
+.tutorial-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.8rem;
+    font-family: 'Outfit', sans-serif;
+}
+
+.tutorial-desc {
+    font-size: 0.95rem;
+    color: #64748b;
+    line-height: 1.5;
+    margin-bottom: 2rem;
+    padding: 0 0.5rem;
+}
+
+.tutorial-desc strong {
+    color: #334155;
+    font-weight: 600;
+}
+
+.tutorial-next-btn {
+    border-radius: 12px;
+    padding: 0.9rem;
+    font-size: 1.05rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--primary, #ff7e67); /* Użycie koloru z motywu */
+    color: white;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: none; /* Brak cieni dla lepszej wydajności */
+}
+
+.tutorial-next-btn:active {
+    background: #e66c55;
+}
+
+.tutorial-progress {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 1.5rem;
+}
+
+.tutorial-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+    background: #e2e8f0;
+    transition: background-color 0.2s ease;
+}
+
+.tutorial-dot.active {
+    width: 20px;
+    background: var(--primary, #ff7e67);
+}

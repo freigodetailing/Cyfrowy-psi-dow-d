@@ -177,6 +177,15 @@ document.addEventListener("DOMContentLoaded", async () => {
             document.getElementById('app').classList.add('login-container');
             document.getElementById('loader').classList.add('hidden');
             document.getElementById('app').classList.remove('hidden');
+            
+            // Zachowaj parametry (np. action=assign&id=...) i przekaż je do login.html
+            const currentSearch = window.location.search;
+            if (currentSearch) {
+                const loginLinks = document.querySelectorAll('a[href="login.html"], a[href="./login.html"]');
+                loginLinks.forEach(link => {
+                    link.href = 'login.html' + currentSearch;
+                });
+            }
             return;
         }
 
@@ -845,6 +854,17 @@ document.addEventListener("DOMContentLoaded", async () => {
                         updateNotificationSettingsStatus();
                     } else {
                         // Włącz powiadomienia
+                        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+                        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+                        if (isIOS && !isStandalone) {
+                            if (typeof showResultModal === 'function') {
+                                showResultModal('info', "Dodaj do ekranu głównego", "Aby odbierać powiadomienia na iPhonie, musisz dodać tę stronę do ekranu początkowego. Stuknij ikonę 'Udostępnij' na dole przeglądarki, a następnie 'Do ekranu początkowego'. Po dodaniu otwórz aplikację z ekranu głównego i włącz powiadomienia ponownie.");
+                            } else {
+                                alert("Aby odbierać powiadomienia na iPhonie, musisz dodać tę stronę do ekranu początkowego. Stuknij ikonę 'Udostępnij' na dole przeglądarki, a następnie 'Do ekranu początkowego'.");
+                            }
+                            return;
+                        }
+
                         const permission = await Notification.requestPermission();
                         localStorage.setItem('notification_prompted', 'true');
                         localStorage.setItem('notifications_disabled', 'false');
@@ -1021,14 +1041,26 @@ document.addEventListener("DOMContentLoaded", async () => {
         const resultMessage = document.getElementById('resultMessage');
         const closeResultBtn = document.getElementById('closeResultBtn');
 
-        const showResultModal = (isSuccess, title, msg) => {
-            if (isSuccess) {
+        const showResultModal = (typeOrIsSuccess, title, msg) => {
+            let type = typeOrIsSuccess;
+            if (typeof typeOrIsSuccess === 'boolean') {
+                type = typeOrIsSuccess ? 'success' : 'error';
+            }
+
+            if (type === 'success') {
                 resultIconContainer.style.background = '#f6ffed';
                 resultIconContainer.style.border = '3px solid #b7eb8f';
                 resultIconContainer.style.boxShadow = '0 10px 25px rgba(82, 196, 26, 0.25)';
                 resultIcon.className = 'fa-solid fa-check';
                 resultIcon.style.color = '#52c41a';
                 resultTitle.style.color = '#52c41a';
+            } else if (type === 'info') {
+                resultIconContainer.style.background = '#e6f7ff';
+                resultIconContainer.style.border = '3px solid #91d5ff';
+                resultIconContainer.style.boxShadow = '0 10px 25px rgba(24, 144, 255, 0.25)';
+                resultIcon.className = 'fa-solid fa-info';
+                resultIcon.style.color = '#1890ff';
+                resultTitle.style.color = '#1890ff';
             } else {
                 resultIconContainer.style.background = '#fff1f0';
                 resultIconContainer.style.border = '3px solid #ffa39e';
@@ -1111,6 +1143,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
 
                 // 3. Wykonujemy przypisanie używając świeżego ID użytkownika
+                // Najpierw sprawdzamy czy miał pupile przed przypisaniem
+                const hadNoPets = document.querySelectorAll('.pet-card').length === 0;
+
                 const { error } = await supabaseClient
                     .from('pet_claims')
                     .insert({ pet_id: tagId, user_id: freshSession.user.id });
@@ -1125,8 +1160,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 // Sukces
                 hideAssignModal();
-                showResultModal(true, "Sukces!", "Brelok został pomyślnie przypisany do Twojego konta.");
                 await loadUserPets();
+                
+                // Jeśli przed dodaniem nie było żadnej karty - uruchom tour (niezależnie od ciasteczek)!
+                if (hadNoPets) {
+                    startGuidedTour();
+                } else {
+                    showResultModal(true, "Sukces!", "Brelok został pomyślnie przypisany do Twojego konta.");
+                }
             } catch (err) {
                 console.error("Assignment error:", err);
                 showResultModal(false, "Błąd", "Wystąpił błąd podczas przypisywania: " + err.message);
@@ -1152,7 +1193,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Obsługa Skanowania NFC
         startNfcScanBtn.addEventListener('click', async () => {
             if (!('NDEFReader' in window)) {
-                showResultModal(false, "Błąd NFC", "Twoja przeglądarka lub system nie obsługują skanowania NFC wewnątrz strony. Spróbuj zbliżyć brelok do górnej części telefonu bez uruchamiania skanera.");
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+                if (isIOS) {
+                    showResultModal('info', "Skanowanie na iPhonie", "Apple blokuje skaner NFC wewnątrz przeglądarki. Aby przypisać ten brelok, zamknij to okienko, upewnij się, że masz odblokowany telefon i po prostu zbliż brelok do jego górnej części. Kiedy na ekranie pojawi się powiadomienie (link) – kliknij w nie. Zostaniesz przeniesiony na stronę, gdzie będziesz mógł jednym kliknięciem przypisać brelok!");
+                } else {
+                    showResultModal(false, "Błąd NFC", "Twoja przeglądarka lub system nie obsługują skanowania NFC wewnątrz strony. Spróbuj zbliżyć brelok do górnej części telefonu bez uruchamiania skanera.");
+                }
                 return;
             }
 
@@ -1210,5 +1256,170 @@ document.addEventListener("DOMContentLoaded", async () => {
     } finally {
         document.getElementById('loader').classList.add('hidden');
         document.getElementById('app').classList.remove('hidden');
+    }
+});
+
+// ============================================
+// GUIDED TOUR (INTERAKTYWNY PORADNIK + PIĘKNY DESIGN)
+// ============================================
+const tourSteps = [
+    {
+        targetId: null, // Srodek ekranu
+        title: "Sukces! Brelok dodany.",
+        text: "Twój pierwszy brelok został pomyślnie przypisany do konta! Pozwól, że w 3 krótkich krokach pokażemy Ci, jak w pełni wykorzystać jego możliwości.",
+        pos: 'center',
+        icon: 'fa-wand-magic-sparkles',
+        bgColor: '#e6f9ed',
+        iconColor: '#22c55e',
+        btnText: 'Zaczynamy'
+    },
+    {
+        targetId: 'petsList',
+        title: "1. Uzupełnij profil",
+        text: "Kliknij w podświetloną kartę, aby otworzyć profil pupila. Następnie wejdź w <strong>Ustawienia</strong> (ikona zębatki) i użyj przycisku <strong>Edytuj profil</strong>, by uaktywnić i nadać życie profilowi.",
+        pos: 'bottom',
+        icon: 'fa-camera-retro',
+        bgColor: '#ebf3fe',
+        iconColor: '#3b82f6',
+        btnText: 'Dalej'
+    },
+    {
+        targetId: 'navSettingsBtn',
+        title: "2. Powiadomienia",
+        text: "Wejdź w <strong>Ustawienia</strong> i włącz <strong>Powiadomienia Push</strong>. Dzięki temu od razu dostaniesz alert na telefon (wraz z lokalizacją GPS), gdy tylko ktoś zeskanuje brelok.",
+        pos: 'top',
+        icon: 'fa-bell',
+        bgColor: '#fdf0fe',
+        iconColor: '#d946ef',
+        btnText: 'Dalej'
+    },
+    {
+        targetId: null, // Srodek ekranu
+        title: "3. Próbny skan",
+        text: "Sprawdź, jak to działa! Upewnij się, że telefon jest odblokowany i przyłóż brelok do jego górnej krawędzi. Zobaczysz, jak profil wyświetla się na ekranie znalazcy.",
+        pos: 'center',
+        icon: 'fa-mobile-screen',
+        bgColor: '#fef8e7',
+        iconColor: '#f59e0b',
+        btnText: 'Zakończ'
+    }
+];
+
+let currentTourStep = 0;
+
+function startGuidedTour() {
+    currentTourStep = 0;
+    const overlay = document.getElementById('tourOverlay');
+    if (!overlay) return;
+    
+    // Zablokuj scrollowanie na czas wycieczki (poza naszym kontrolowanym skrolowaniem do elementu)
+    document.body.style.overflow = 'hidden';
+    overlay.classList.add('active');
+    
+    showTourStep(currentTourStep);
+    try {
+        if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+    } catch(e) {}
+}
+
+function stopGuidedTour() {
+    const overlay = document.getElementById('tourOverlay');
+    if (overlay) overlay.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function showTourStep(index) {
+    if (index >= tourSteps.length) {
+        stopGuidedTour();
+        return;
+    }
+    
+    const step = tourSteps[index];
+    const spotlight = document.getElementById('tourSpotlight');
+    const tooltip = document.getElementById('tourTooltip');
+    const title = document.getElementById('tourTitle');
+    const text = document.getElementById('tourText');
+    const nextBtn = document.getElementById('tourNextBtn');
+    const iconWrapper = document.getElementById('tourIconWrapper');
+    const icon = document.getElementById('tourIcon');
+    
+    // Wstrzyknięcie danych z "pięknego designu"
+    title.textContent = step.title;
+    text.innerHTML = step.text;
+    iconWrapper.style.backgroundColor = step.bgColor;
+    icon.className = `fa-solid ${step.icon}`;
+    icon.style.color = step.iconColor;
+    
+    if (index === tourSteps.length - 1) {
+        nextBtn.innerHTML = `${step.btnText} <i class="fa-solid fa-check"></i>`;
+    } else {
+        nextBtn.innerHTML = `${step.btnText} <i class="fa-solid fa-arrow-right"></i>`;
+    }
+    
+    let targetEl = null;
+    if (step.targetId === 'petsList') {
+        const cards = document.querySelectorAll('.pet-card');
+        if (cards.length > 0) targetEl = cards[0]; // Pierwsza karta
+    } else if (step.targetId) {
+        targetEl = document.getElementById(step.targetId);
+    }
+    
+    if (targetEl) {
+        targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        setTimeout(() => {
+            const rect = targetEl.getBoundingClientRect();
+            const padding = 8;
+            
+            spotlight.style.opacity = '1';
+            spotlight.style.top = (rect.top - padding) + 'px';
+            spotlight.style.left = (rect.left - padding) + 'px';
+            spotlight.style.width = (rect.width + padding * 2) + 'px';
+            spotlight.style.height = (rect.height + padding * 2) + 'px';
+            
+            tooltip.setAttribute('data-pos', step.pos);
+            const tooltipRect = tooltip.getBoundingClientRect();
+            
+            // Reset tooltip transform if it was centered
+            tooltip.style.transform = 'none';
+            
+            if (step.pos === 'top') {
+                tooltip.style.top = (rect.top - tooltipRect.height - padding - 15) + 'px';
+                tooltip.style.left = (rect.left + rect.width / 2 - tooltipRect.width / 2) + 'px';
+            } else {
+                tooltip.style.top = (rect.bottom + padding + 15) + 'px';
+                tooltip.style.left = (rect.left + rect.width / 2 - tooltipRect.width / 2) + 'px';
+            }
+            
+            // Bound tooltip to screen
+            const currentLeft = parseFloat(tooltip.style.left);
+            if (currentLeft < 10) tooltip.style.left = '10px';
+            if (currentLeft + tooltipRect.width > window.innerWidth - 10) {
+                tooltip.style.left = (window.innerWidth - tooltipRect.width - 10) + 'px';
+            }
+        }, 300); // Czas na przewinięcie okna
+    } else {
+        // Brak targetu (center) - ekran całkowicie przyciemniony (spotlight o wymiarach 0x0 pośrodku ekranu)
+        spotlight.style.opacity = '1';
+        spotlight.style.width = '0px';
+        spotlight.style.height = '0px';
+        spotlight.style.top = '50%';
+        spotlight.style.left = '50%';
+        
+        tooltip.removeAttribute('data-pos');
+        tooltip.style.top = '50%';
+        tooltip.style.left = '50%';
+        tooltip.style.transform = 'translate(-50%, -50%)';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const nextBtn = document.getElementById('tourNextBtn');
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            if (navigator.vibrate) navigator.vibrate(30);
+            currentTourStep++;
+            showTourStep(currentTourStep);
+        });
     }
 });

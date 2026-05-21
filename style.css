@@ -5539,3 +5539,151 @@ html[data-pwa='installed'] .pwa-install-btn {
 .forgot-password-link a:hover {
     text-decoration: underline;
 }
+
+
+/* Nowe male okragle ikony na gorze modali */
+.modal-top-icon {
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    margin: -45px auto 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    position: relative;
+    z-index: 2;
+}
+.modal-top-icon i {
+    font-size: 1.7rem;
+}
+@media (max-width: 480px) {
+    .modal-top-icon {
+        width: 52px;
+        height: 52px;
+        margin: -36px auto 0;
+    }
+    .modal-top-icon i {
+        font-size: 1.35rem;
+    }
+}
+
+/* =========================================
+   GUIDED TOUR - LEKKI INTERAKTYWNY PORADNIK
+   ========================================= */
+
+#tourOverlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 9999;
+    pointer-events: none; /* Cały overlay z zasady przepuszcza kliknięcia, kontrolujemy to wewnątrz */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease;
+}
+
+#tourOverlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Warstwa blokująca kliknięcia w resztę aplikacji */
+.tour-backdrop-blocker {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 9998;
+    pointer-events: auto; /* Zablokuje kliknięcia w tło */
+}
+
+/* Wycięte światło na element. Używamy ogromnego box-shadow dla lekkości, unikamy blur */
+.tour-spotlight {
+    position: absolute;
+    border-radius: 12px;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7);
+    z-index: 9999;
+    transition: all 0.3s ease-in-out;
+    pointer-events: none; /* Przepuszcza kliknięcia w podświetlony element pod spodem */
+}
+
+.tour-tooltip {
+    position: absolute;
+    background: #ffffff;
+    color: #1e293b;
+    padding: 1.8rem 1.5rem; /* Więcej oddechu */
+    border-radius: 20px;
+    width: 300px; /* Szerszy by zmieścić więcej pięknego tekstu */
+    z-index: 10000;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    transition: all 0.3s ease-in-out;
+    pointer-events: auto;
+    text-align: center; /* Wyśrodkowanie jak w starym */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.tour-icon-wrapper {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 1.2rem;
+    font-size: 1.8rem;
+    transition: all 0.3s ease;
+}
+
+.tour-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 0.4rem;
+    color: var(--primary, #ff7e67);
+    font-family: 'Outfit', sans-serif;
+}
+
+.tour-text {
+    font-size: 0.95rem;
+    color: #475569;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+}
+
+.tour-text strong {
+    color: #334155;
+    font-weight: 700;
+}
+
+.tour-btn {
+    background: var(--primary, #ff7e67);
+    color: white;
+    border: none;
+    padding: 0.7rem 1rem;
+    border-radius: 10px;
+    font-weight: 600;
+    width: 100%;
+    cursor: pointer;
+    font-size: 0.95rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Triangle caret pointing to the element */
+.tour-tooltip::after {
+    content: '';
+    position: absolute;
+    width: 0; height: 0;
+    border: 8px solid transparent;
+}
+
+.tour-tooltip[data-pos="top"]::after {
+    top: 100%; left: 50%; transform: translateX(-50%);
+    border-top-color: #ffffff;
+}
+
+.tour-tooltip[data-pos="bottom"]::after {
+    bottom: 100%; left: 50%; transform: translateX(-50%);
+    border-bottom-color: #ffffff;
+}

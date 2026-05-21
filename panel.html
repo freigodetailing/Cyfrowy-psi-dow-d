@@ -370,10 +370,8 @@
     <!-- MODAL: Odepnij konta -->
     <div id="unpairAccountsModalOverlay" class="color-modal-overlay">
         <div class="color-modal" style="text-align: center; padding: 2.2rem 1.5rem 1.5rem;">
-            <div class="image-outer-ring" style="width: 80px; height: 80px; background: #fff5f5; border: 3px solid #ffccd2; margin-top: -40px; box-shadow: 0 10px 25px rgba(231, 76, 60, 0.25) !important;">
-                <div class="image-wrapper" style="background: #fff5f5; display: flex; align-items: center; justify-content: center;">
-                    <i class="fa-solid fa-link-slash" style="font-size: 2rem; color: #e74c3c;"></i>
-                </div>
+            <div class="modal-top-icon" style="background: #fff5f5; border: 3px solid #ffccd2; box-shadow: 0 10px 25px rgba(231, 76, 60, 0.25);">
+                <i class="fa-solid fa-link-slash" style="color: #e74c3c;"></i>
             </div>
             <h3 class="modal-title" style="color: #e74c3c;">Rozłączyć konta?</h3>
             <p style="font-size: 0.95rem; color: var(--text-dark); margin-bottom: 1rem; line-height: 1.4;">
@@ -394,10 +392,8 @@
     <!-- MODAL: Usuń konto -->
     <div id="deleteAccountModalOverlay" class="color-modal-overlay">
         <div class="color-modal" style="text-align: center; padding: 2rem 1.5rem;">
-            <div class="image-outer-ring" style="width: 80px; height: 80px; background: #fff5f5; border: 3px solid #ffccd2; margin-top: -40px; box-shadow: 0 10px 25px rgba(211, 47, 47, 0.25) !important;">
-                <div class="image-wrapper" style="background: #fff5f5; display: flex; align-items: center; justify-content: center;">
-                    <i class="fa-solid fa-user-slash" style="font-size: 2rem; color: #d32f2f;"></i>
-                </div>
+            <div class="modal-top-icon" style="background: #fff5f5; border: 3px solid #ffccd2; box-shadow: 0 10px 25px rgba(211, 47, 47, 0.25);">
+                <i class="fa-solid fa-user-slash" style="color: #d32f2f;"></i>
             </div>
             <h3 style="margin-top: 1rem; color: #d32f2f;">Usuwanie konta</h3>
             <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem; line-height: 1.5;">
@@ -414,10 +410,8 @@
     <!-- MODAL: Odłącz pupila -->
     <div id="unpairModalOverlay" class="color-modal-overlay">
         <div class="color-modal" style="text-align: center; padding: 2rem 1.5rem;">
-            <div class="image-outer-ring" style="width: 80px; height: 80px; background: #fff5f5; border: 3px solid #ffccd2; margin-top: -40px; box-shadow: 0 10px 25px rgba(211, 47, 47, 0.25) !important;">
-                <div class="image-wrapper" style="background: #fff5f5; display: flex; align-items: center; justify-content: center;">
-                    <i class="fa-solid fa-link-slash" style="font-size: 2rem; color: #d32f2f;"></i>
-                </div>
+            <div class="modal-top-icon" style="background: #fff5f5; border: 3px solid #ffccd2; box-shadow: 0 10px 25px rgba(211, 47, 47, 0.25);">
+                <i class="fa-solid fa-link-slash" style="color: #d32f2f;"></i>
             </div>
             <h3 style="margin-top: 1rem; color: #d32f2f;">Odłączanie pupila</h3>
             <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem; line-height: 1.5;">
@@ -485,16 +479,30 @@
     <!-- MODAL: Wynik przypisania -->
     <div id="resultModalOverlay" class="color-modal-overlay">
         <div class="color-modal" style="text-align: center; padding: 2rem 1.5rem;">
-            <div id="resultIconContainer" class="image-outer-ring" style="width: 80px; height: 80px; margin-top: -40px;">
-                <div class="image-wrapper" style="display: flex; align-items: center; justify-content: center;">
-                    <i id="resultIcon" class="fa-solid fa-check" style="font-size: 2.5rem;"></i>
-                </div>
+            <div id="resultIconContainer" class="modal-top-icon">
+                <i id="resultIcon" class="fa-solid fa-check"></i>
             </div>
             <h3 id="resultTitle" style="margin-top: 1rem;">Sukces!</h3>
             <p id="resultMessage" style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem; line-height: 1.5;">
                 Pomyślnie przypisano nowy brelok do Twojego konta.
             </p>
             <button id="closeResultBtn" class="btn-action w-100" style="justify-content: center; padding: 1rem; font-size: 1.1rem; border-radius: 15px;">OK</button>
+        </div>
+    </div>
+
+    <!-- ============================================
+         MODAL: JEDNORAZOWY PORADNIK (GUIDED TOUR)
+    ============================================= -->
+    <div id="tourOverlay">
+        <div class="tour-backdrop-blocker"></div>
+        <div class="tour-spotlight" id="tourSpotlight"></div>
+        <div class="tour-tooltip" id="tourTooltip">
+            <div class="tour-icon-wrapper" id="tourIconWrapper">
+                <i class="fa-solid fa-wand-magic-sparkles" id="tourIcon"></i>
+            </div>
+            <div class="tour-title" id="tourTitle">Tytuł</div>
+            <div class="tour-text" id="tourText">Tekst</div>
+            <button class="tour-btn" id="tourNextBtn">Dalej <i class="fa-solid fa-arrow-right"></i></button>
         </div>
     </div>
 

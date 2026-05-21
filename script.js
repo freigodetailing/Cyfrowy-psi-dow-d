@@ -217,6 +217,7 @@ async function fetchDogData(tagId) {
                 dogPhotoUrl: data['ZDJECIE'],
                 likes: data['LAJKI'],
                 isLost: data['ZGUBA'] || false,
+                isOrphan: data['SIEROTA'] === true,
                 user_id: data.user_id
             };
         } else {
@@ -246,6 +247,21 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // 3. Wypełnienie DOM
         document.getElementById('dogName').textContent = profileData.dogName;
+
+        // --- Obsługa nieprzypisanego breloka (Sieroty) ---
+        const orphanAssignSection = document.getElementById('orphanAssignSection');
+        const assignOrphanBtn = document.getElementById('assignOrphanBtn');
+        
+        if (profileData.isOrphan) {
+            if (orphanAssignSection) orphanAssignSection.classList.remove('hidden');
+            if (assignOrphanBtn) {
+                assignOrphanBtn.onclick = () => {
+                    window.location.href = `panel.html?action=assign&id=${tagId}`;
+                };
+            }
+        } else {
+            if (orphanAssignSection) orphanAssignSection.classList.add('hidden');
+        }
     
     // Automatyczne kalkulowanie wieku, jeśli została podana data (lub tekst bezpośrednio z API)
     document.getElementById('dogAge').textContent = calculateAge(profileData.dogAge);

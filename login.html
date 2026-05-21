@@ -15,6 +15,7 @@
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="apple-touch-icon" href="logo.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script>
         const savedTheme = localStorage.getItem('appTheme') || 'orange';
         if (savedTheme !== 'orange') {
@@ -75,6 +76,13 @@
                     <button type="submit" id="submitBtn" class="btn-action btn-message w-100">
                         Zaloguj się <i class="fa-solid fa-arrow-right"></i>
                     </button>
+
+                    <div class="auth-divider">
+                        <span>lub</span>
+                    </div>
+                    
+                    <!-- Kontener dla przycisku Google -->
+                    <div id="googleButtonContainer" class="google-btn-wrapper"></div>
 
                     <div id="loadingIndicator" class="loading-indicator hidden">
                         <i class="fa-solid fa-spinner fa-spin"></i> Przetwarzanie...

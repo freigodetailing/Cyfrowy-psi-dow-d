@@ -5500,3 +5500,28 @@ html[data-pwa='installed'] .pwa-install-btn {
     visibility: hidden !important;
     pointer-events: none !important;
 }
+
+/* --- Google Auth Styles --- */
+.auth-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 20px 0;
+}
+.auth-divider::before, .auth-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #e0e0e0;
+}
+.auth-divider span {
+    padding: 0 10px;
+    color: #888;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+.google-btn-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+    min-height: 44px;
+}

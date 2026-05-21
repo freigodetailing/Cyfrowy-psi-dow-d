@@ -4,7 +4,44 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // -----------------------------
 
+// Globalna funkcja callback dla Google One Tap
+window.handleGoogleCallback = async (response) => {
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const submitBtn = document.getElementById('submitBtn');
+    const errorMsg = document.getElementById('errorMsg');
 
+    if (submitBtn) submitBtn.classList.add('hidden');
+    if (loadingIndicator) loadingIndicator.classList.remove('hidden');
+    if (errorMsg) errorMsg.classList.add('hidden');
+
+    try {
+        const { data, error } = await supabaseClient.auth.signInWithIdToken({
+            provider: 'google',
+            token: response.credential,
+        });
+
+        if (error) throw error;
+
+        // Przekierowanie jak przy zwykłym logowaniu
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirectId = urlParams.get('redirectId') || '12345';
+        const source = urlParams.get('source') || 'dashboard';
+
+        if (source === 'profile') {
+            window.location.href = `index.html?id=${redirectId}`;
+        } else {
+            window.location.href = `panel.html`;
+        }
+    } catch (error) {
+        console.error("Google Auth Error:", error);
+        if (errorMsg) {
+            errorMsg.textContent = "Błąd logowania przez Google: " + error.message;
+            errorMsg.classList.remove('hidden');
+        }
+        if (submitBtn) submitBtn.classList.remove('hidden');
+        if (loadingIndicator) loadingIndicator.classList.add('hidden');
+    }
+};
 
 document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -20,6 +57,34 @@ document.addEventListener('DOMContentLoaded', async () => {
             window.location.href = `panel.html`;
         }
         return;
+    }
+
+    // --- Inicjalizacja Google One Tap ---
+    const GOOGLE_CLIENT_ID = "208983119617-oa2g6no6tc7e0l508liomch97o257fbv.apps.googleusercontent.com";
+
+    if (window.google) {
+        google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: handleGoogleCallback,
+            auto_select: false,
+            cancel_on_tap_outside: true,
+            context: "use"
+        });
+
+        // 1. Renderuj statyczny przycisk awaryjny (np. dla iOS Safari)
+        google.accounts.id.renderButton(
+            document.getElementById("googleButtonContainer"),
+            { theme: "outline", size: "large", width: 280, shape: "rectangular", text: "continue_with" }
+        );
+
+        // 2. Pokaż wyskakujące okienko Google One Tap
+        google.accounts.id.prompt((notification) => {
+            if (notification.isNotDisplayed()) {
+                console.log("One Tap not displayed:", notification.getNotDisplayedReason());
+            } else if (notification.isSkippedMoment()) {
+                console.log("One Tap skipped:", notification.getSkippedReason());
+            }
+        });
     }
 
     const loginForm       = document.getElementById('loginForm');

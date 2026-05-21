@@ -4,6 +4,17 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // -----------------------------
 
+let isRecoveryMode = false;
+
+supabaseClient.auth.onAuthStateChange((event, session) => {
+    if (event === 'PASSWORD_RECOVERY') {
+        isRecoveryMode = true;
+        if (window.switchMode) {
+            window.switchMode('update-password');
+        }
+    }
+});
+
 // Globalna funkcja callback dla Google One Tap
 window.handleGoogleCallback = async (response) => {
     const loadingIndicator = document.getElementById('loadingIndicator');
@@ -48,12 +59,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const redirectId = urlParams.get('redirectId') || '12345';
     const source = urlParams.get('source') || 'dashboard';
 
-    // Sprawdź czy to link odzyskiwania hasła
-    const isRecovery = window.location.hash && window.location.hash.includes('type=recovery');
+    // Sprawdź czy to link odzyskiwania hasła (z hash lub ze zdarzenia)
+    const isRecoveryHash = window.location.hash && window.location.hash.includes('type=recovery');
+    if (isRecoveryHash) isRecoveryMode = true;
 
     // Jeśli zalogowany – przekieruj od razu (ale NIE w przypadku odzyskiwania hasła)
     const { data: { session } } = await supabaseClient.auth.getSession();
-    if (session && !isRecovery) {
+    if (session && !isRecoveryMode) {
         if (source === 'profile') {
             window.location.href = `index.html?id=${redirectId}`;
         } else {
@@ -196,7 +208,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     
     // --- Check hash for password recovery ---
-    if (isRecovery) {
+    if (isRecoveryMode) {
         switchMode('update-password');
     }
 

@@ -48,9 +48,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const redirectId = urlParams.get('redirectId') || '12345';
     const source = urlParams.get('source') || 'dashboard';
 
-    // Jeśli zalogowany – przekieruj od razu
+    // Sprawdź czy to link odzyskiwania hasła
+    const isRecovery = window.location.hash && window.location.hash.includes('type=recovery');
+
+    // Jeśli zalogowany – przekieruj od razu (ale NIE w przypadku odzyskiwania hasła)
     const { data: { session } } = await supabaseClient.auth.getSession();
-    if (session) {
+    if (session && !isRecovery) {
         if (source === 'profile') {
             window.location.href = `index.html?id=${redirectId}`;
         } else {

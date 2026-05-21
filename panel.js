@@ -792,13 +792,32 @@ document.addEventListener("DOMContentLoaded", async () => {
             
             if (!statusText) return;
             
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+            // Na iPhonie bez PWA obiekt Notification nie istnieje, ale chcemy dać szansę na dodanie do ekranu
             if (!('Notification' in window)) {
-                statusText.textContent = "Niewspierane ❌";
-                statusText.style.background = "#fff5f5";
-                statusText.style.color = "#e74c3c";
-                if (enableBtn) enableBtn.style.display = 'none';
-                if (testBtn) testBtn.style.display = 'none';
-                return;
+                if (isIOS && !isStandalone) {
+                    statusText.textContent = "Wymagana aplikacja ⚠️";
+                    statusText.style.background = "#fff3cd";
+                    statusText.style.color = "#856404";
+                    if (enableBtn) {
+                        enableBtn.style.display = 'flex';
+                        enableBtn.innerHTML = '<i class="fa-brands fa-apple"></i> Włącz powiadomienia';
+                        enableBtn.style.color = '';
+                        enableBtn.style.background = '';
+                        enableBtn.style.border = '';
+                    }
+                    if (testBtn) testBtn.style.display = 'none';
+                    return;
+                } else {
+                    statusText.textContent = "Niewspierane ❌";
+                    statusText.style.background = "#fff5f5";
+                    statusText.style.color = "#e74c3c";
+                    if (enableBtn) enableBtn.style.display = 'none';
+                    if (testBtn) testBtn.style.display = 'none';
+                    return;
+                }
             }
             
             const permission = Notification.permission;
@@ -840,6 +859,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         const enableNotificationsBtn = document.getElementById('enableNotificationsBtn');
         if (enableNotificationsBtn) {
             enableNotificationsBtn.addEventListener('click', async () => {
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+                const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+                if (isIOS && !isStandalone) {
+                    if (typeof showResultModal === 'function') {
+                        showResultModal('info', "Krok 1 z 2", "Twój iPhone blokuje powiadomienia w przeglądarce. Musisz zapisać aplikację na telefonie!<br><br><div style='text-align:left; background:#f8fafc; padding:15px; border-radius:12px; margin-top:10px;'><b style='font-size:1.1rem;'>👇 Jak to zrobić?</b><br><br>1️⃣ Kliknij <b>ikonę udostępniania</b> na samym dole ekranu <i class='fa-solid fa-arrow-up-from-bracket' style='color:#007aff; margin-left:5px;'></i><br><br>2️⃣ Z listy opcji wybierz <b>Do ekranu początkowego</b> <i class='fa-regular fa-square-plus' style='margin-left:5px;'></i><br><br>3️⃣ Zamknij przeglądarkę i wejdź do aplikacji prosto z pulpitu telefonu!</div>");
+                    } else {
+                        alert("Aby odbierać powiadomienia na iPhonie, musisz dodać tę stronę do ekranu początkowego.");
+                    }
+                    return;
+                }
+
                 if ('Notification' in window) {
                     const isManuallyDisabled = localStorage.getItem('notifications_disabled') === 'true';
                     
@@ -848,31 +879,23 @@ document.addEventListener("DOMContentLoaded", async () => {
                         localStorage.setItem('notifications_disabled', 'true');
                         try {
                             if ('serviceWorker' in navigator) {
-                                const reg = await navigator.serviceWorker.ready;
-                                const sub = await reg.pushManager.getSubscription();
-                                if (sub) await sub.unsubscribe();
+                                const registration = await navigator.serviceWorker.ready;
+                                const subscription = await registration.pushManager.getSubscription();
+                                if (subscription) {
+                                    await subscription.unsubscribe();
+                                }
                             }
-                        } catch(e) {}
+                        } catch (e) {
+                            console.error("Błąd podczas wyrejestrowywania z powiadomień", e);
+                        }
                         updateNotificationSettingsStatus();
                     } else {
                         // Włącz powiadomienia
-                        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-                        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-                        if (isIOS && !isStandalone) {
-                            if (typeof showResultModal === 'function') {
-                                showResultModal('info', "Dodaj do ekranu głównego", "Aby odbierać powiadomienia na iPhonie, musisz dodać tę stronę do ekranu początkowego. Stuknij ikonę 'Udostępnij' na dole przeglądarki, a następnie 'Do ekranu początkowego'. Po dodaniu otwórz aplikację z ekranu głównego i włącz powiadomienia ponownie.");
-                            } else {
-                                alert("Aby odbierać powiadomienia na iPhonie, musisz dodać tę stronę do ekranu początkowego. Stuknij ikonę 'Udostępnij' na dole przeglądarki, a następnie 'Do ekranu początkowego'.");
-                            }
-                            return;
-                        }
-
                         const permission = await Notification.requestPermission();
                         localStorage.setItem('notification_prompted', 'true');
                         localStorage.setItem('notifications_disabled', 'false');
                         updateNotificationSettingsStatus();
-                        if (permission === 'granted' && dogs) {
-                            setupScanNotificationSubscription(dogs);
+                        if (permission === 'granted') {
                             if (typeof registerPushSubscription === 'function') {
                                 registerPushSubscription();
                             }

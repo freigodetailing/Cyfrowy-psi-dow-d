@@ -679,7 +679,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const petIds = claims.map(c => c.pet_id);
                 const { data: dogs } = await supabaseClient
                     .from('dogs')
-                    .select('ID, "IMIE PSA", ZDJECIE, ZGUBA, LAST_LAT, LAST_LNG')
+                    .select('ID, "IMIE PSA", ZDJECIE, ZGUBA, LAST_LAT, LAST_LNG, secure_id')
                     .in('ID', petIds);
 
                 if (dogs && dogs.length > 0) {
@@ -691,7 +691,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                         card.style.cursor = 'pointer';
                         card.onclick = (e) => {
                             if (!e.target.closest('.pet-card-edit-btn') && !e.target.closest('.pet-card-unpair-btn') && !e.target.closest('.pet-card-location-btn') && !e.target.closest('.pet-card-widget-btn')) {
-                                window.location.href = `index.html?id=${dog.ID}`;
+                                const urlId = dog.secure_id || dog.ID;
+                                window.location.href = `index.html?id=${urlId}`;
                             }
                         };
 
@@ -766,7 +767,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                                         badge: './photos/paw.png',
                                         tag: `scan-notify-${petId}`,
                                         data: {
-                                            url: `./tracking.html?id=${petId}`
+                                            url: `./tracking.html?id=${dog.secure_id || petId}`
                                         },
                                         vibrate: [200, 100, 200, 100, 200],
                                         renotify: true
@@ -1042,6 +1043,15 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const assignBtn = document.querySelector('.assign-nfc-btn');
                 if (assignBtn) assignBtn.click();
             }, 500);
+        } else if (urlParams.get('action') === 'assign_auto') {
+            const autoId = urlParams.get('id');
+            if (autoId) {
+                // Usuwamy parametry z URL natychmiast, aby ponowne załadowanie strony nie powtarzało przypisania
+                window.history.replaceState(null, null, window.location.pathname);
+                setTimeout(async () => {
+                    await performAssignment(autoId);
+                }, 500);
+            }
         }
 
         // --- Nowa Logika Przypisywania (ID + NFC) ---
@@ -1121,7 +1131,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         assignBtns.forEach(btn => btn.addEventListener('click', showAssignModal));
         cancelNfcBtn.addEventListener('click', hideAssignModal);
         
-        nfcModalOverlay.addEventListener('click', (e) => {
+nfcModalOverlay.addEventListener('click', (e) => {
             if (e.target === nfcModalOverlay) hideAssignModal();
         });
 
@@ -1145,24 +1155,28 @@ document.addEventListener("DOMContentLoaded", async () => {
                     return;
                 }
 
-                // 1. Najpierw sprawdzamy, czy taki pies w ogóle istnieje w bazie
-                const { data: dogExists, error: fetchError } = await supabaseClient
-                    .from('dogs')
-                    .select('ID')
-                    .eq('ID', tagId)
-                    .single();
+                // 1. Najpierw sprawdzamy, czy taki psa w ogóle istnieje w bazie (po secure_id lub ID <= 25)
+                let dogQuery = supabaseClient.from('dogs').select('ID');
+                if (/^\d+$/.test(tagId) && parseInt(tagId) <= 25) {
+                    dogQuery = dogQuery.eq('ID', parseInt(tagId));
+                } else {
+                    dogQuery = dogQuery.eq('secure_id', tagId);
+                }
+                const { data: dogExists, error: fetchError } = await dogQuery.maybeSingle();
                 
                 if (fetchError || !dogExists) {
                     showResultModal(false, "Nieprawidłowy kod", "Brak w bazie pupila o podanym kodzie ID. Sprawdź, czy wpisałeś go poprawnie.");
                     return;
                 }
 
+                const dogDbId = dogExists.ID;
+
                 // 2. Sprawdzamy czy już przypisany do kogoś
                 const { data: existing, error: checkError } = await supabaseClient
                     .from('pet_claims')
                     .select('user_id')
-                    .eq('pet_id', tagId)
-                    .single();
+                    .eq('pet_id', dogDbId)
+                    .maybeSingle();
                 
                 if (existing) {
                     showResultModal(false, "Błąd", "Ten brelok jest już przypisany do innego konta!");
@@ -1175,7 +1189,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 const { error } = await supabaseClient
                     .from('pet_claims')
-                    .insert({ pet_id: tagId, user_id: freshSession.user.id });
+                    .insert({ pet_id: dogDbId, user_id: freshSession.user.id });
 
                 if (error) throw error;
 
@@ -1183,7 +1197,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 await supabaseClient
                     .from('dogs')
                     .update({ 'SIEROTA': null })
-                    .eq('ID', tagId);
+                    .eq('ID', dogDbId);
 
                 // Sukces
                 hideAssignModal();

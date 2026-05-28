@@ -8,6 +8,7 @@ let petMarker; // Zmieniamy nazwę dla jasności (to jest ten kolorowy)
 let historyMarkers = []; // Tablica na szare punkty z dziś
 let userMarker;
 let petId;
+let dogDbId;
 
 function getFinalImageUrl(url) {
     if (!url || url === "Brak danych" || url === "" || url === "./dog_sample.png" || url === "./1.png") return "./photos/podstawa.png";
@@ -186,60 +187,71 @@ async function loadPetData() {
         window.location.href = 'panel.html';
         return;
     }
-
-    // 2. Pobierz dane psa
-    const { data, error } = await supabaseClient
-        .from('dogs')
-        .select('*')
-        .eq('ID', petId)
-        .single();
-
+ 
+    // 2. Pobierz dane psa (secure_id lub ID <= 25)
+    let query = supabaseClient.from('dogs').select('*');
+    if (/^\d+$/.test(petId) && parseInt(petId) <= 25) {
+        query = query.eq('ID', parseInt(petId));
+    } else {
+        query = query.eq('secure_id', petId);
+    }
+    const { data, error } = await query.single();
+ 
+    if (error || !data) {
+        console.error("Nie znaleziono psa:", error);
+        alert("Brak w bazie pupila o podanym ID.");
+        window.location.href = 'panel.html';
+        return;
+    }
+ 
+    dogDbId = data['ID']; // Ustawienie globalnego liczbowego ID psa
+ 
     // 3. Sprawdź czy użytkownik ma przypisanego tego psa (tabela pet_claims) LUB czy jest partnerem właściciela
     const { data: partnership } = await supabaseClient
         .from('account_partnerships')
         .select('*')
         .or(`user_1.eq.${session.user.id},user_2.eq.${session.user.id}`)
         .maybeSingle();
-
+ 
     let userIds = [session.user.id];
     if (partnership) {
         userIds.push(partnership.user_1 === session.user.id ? partnership.user_2 : partnership.user_1);
     }
-
+ 
     const { data: claim, error: claimError } = await supabaseClient
         .from('pet_claims')
         .select('*')
         .in('user_id', userIds)
-        .eq('pet_id', petId)
+        .eq('pet_id', dogDbId)
         .maybeSingle();
-
+ 
     if (claimError || !claim) {
         alert("Nie masz uprawnień do śledzenia tego pupila.");
         window.location.href = 'panel.html';
         return;
     }
-
+ 
     document.getElementById('petName').textContent = data['IMIE PSA'];
     document.getElementById('petAvatar').src = getFinalImageUrl(data['ZDJECIE']);
 }
-
+ 
 async function loadTodayHistory() {
     // Obliczamy początek dzisiejszego dnia (00:00:00 czasu lokalnego)
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
-
+ 
     const { data: scans, error } = await supabaseClient
         .from('Nawigacja')
         .select('*')
-        .eq('pet_id', petId)
+        .eq('pet_id', dogDbId)
         .gte('created_at', startOfToday.toISOString())
         .order('created_at', { ascending: true });
-
+ 
     if (error) {
         console.error("Error history:", error);
         return;
     }
-
+ 
     renderScans(scans);
 }
 
@@ -460,12 +472,12 @@ function fitMapBounds() {
 function setupRealtimeSubscription() {
     // Subskrypcja na NOWE skanowania w tabeli Nawigacja
     const channel = supabaseClient
-        .channel(`scans-${petId}`)
+        .channel(`scans-${dogDbId}`)
         .on('postgres_changes', { 
             event: 'INSERT', 
             schema: 'public', 
             table: 'Nawigacja', 
-            filter: `pet_id=eq.${petId}` 
+            filter: `pet_id=eq.${dogDbId}` 
         }, payload => {
             console.log('New scan received:', payload.new);
             // Ponieważ dostajemy tylko nowy rekord, najlepiej przeładować historię z dziś,

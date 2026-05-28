@@ -192,12 +192,14 @@ const DEFAULT_PROFILE = {
 
 async function fetchDogData(tagId) {
     try {
-        // Pobieranie danych z bazy Supabase
-        const { data, error } = await supabaseClient
-            .from('dogs')
-            .select('*')
-            .eq('ID', tagId)
-            .single();
+        // Rozwiązanie secure_id lub tradycyjnego ID
+        let query = supabaseClient.from('dogs').select('*');
+        if (/^\d+$/.test(tagId) && parseInt(tagId) <= 25) {
+            query = query.eq('ID', parseInt(tagId));
+        } else {
+            query = query.eq('secure_id', tagId);
+        }
+        const { data, error } = await query.single();
 
         if (error) {
             console.error("Supabase Error: ", error.message);
@@ -207,6 +209,7 @@ async function fetchDogData(tagId) {
         if (data) {
               return {
                   id: data['ID'],
+                  secure_id: data['secure_id'] || data['ID']?.toString(),
                   dogName: (data['IMIE PSA'] && data['IMIE PSA'] !== 'null') ? data['IMIE PSA'] : 'Bezimienny',
                   dogAge: data['WIEK PSA'],
                   dogGender: data['PLEC'] || 'Brak danych',
@@ -370,10 +373,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                         'LAST_LAT': lat, 
                         'LAST_LNG': lng, 
                         'LAST_SCAN_TIME': new Date().toISOString() 
-                    }).eq('ID', tagId);
+                    }).eq('ID', profileData.id);
                     
                     await supabaseClient.from('Nawigacja').insert({
-                        'pet_id': tagId,
+                        'pet_id': profileData.id,
                         'lat': lat,
                         'lng': lng
                     });
@@ -457,7 +460,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 .from('pet_claims')
                 .select('*')
                 .in('user_id', userIds)
-                .eq('pet_id', parseInt(tagId))
+                .eq('pet_id', profileData.id)
                 .maybeSingle();
             
             if (claim) isOwner = true;
@@ -493,13 +496,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                                         'LAST_LNG': lng, 
                                         'LAST_SCAN_TIME': new Date().toISOString() 
                                     })
-                                    .eq('ID', tagId);
+                                    .eq('ID', profileData.id);
                                 
                                 // 2. Dodanie wpisu do historii skanowań (nowa tabela)
                                 await supabaseClient
                                     .from('Nawigacja')
                                     .insert({
-                                        'pet_id': tagId,
+                                        'pet_id': profileData.id,
                                         'lat': lat,
                                         'lng': lng
                                     });
@@ -636,7 +639,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         
         likeCount.textContent = currentLikes;
 
-        const likeStorageKey = `liked_${tagId}`;
+        const likeStorageKey = `liked_${profileData.secure_id || tagId}`;
         let isLiked = localStorage.getItem(likeStorageKey) === 'true';
 
         // Inicjalizacja stanu
@@ -656,14 +659,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                 // Animacja serduszek z guzika
                 spawnHearts(likeBtn);
                 
-                await supabaseClient.from('dogs').update({ 'LAJKI': currentLikes }).eq('ID', tagId);
+                await supabaseClient.from('dogs').update({ 'LAJKI': currentLikes }).eq('ID', profileData.id);
             } else {
                 isLiked = false;
                 currentLikes--;
                 localStorage.setItem(likeStorageKey, 'false');
                 likeBtn.classList.remove('liked');
                 likeCount.textContent = currentLikes;
-                await supabaseClient.from('dogs').update({ 'LAJKI': currentLikes }).eq('ID', tagId);
+                await supabaseClient.from('dogs').update({ 'LAJKI': currentLikes }).eq('ID', profileData.id);
             }
         });
 
@@ -822,7 +825,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 .select('pet_id')
                 .in('user_id', userIds);
 
-            if (pairedDogs && pairedDogs.some(claim => claim.pet_id === tagId)) {
+            if (pairedDogs && pairedDogs.some(claim => claim.pet_id === profileData.id)) {
                 isOwner = true;
             }
         }
@@ -926,7 +929,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         const { error } = await supabaseClient
                             .from('dogs')
                             .update({ 'ZGUBA': active })
-                            .eq('ID', tagId);
+                            .eq('ID', profileData.id);
                         
                         if (error) throw error;
                         
@@ -1065,7 +1068,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     const { error } = await supabaseClient
                         .from('dogs')
                         .update({ 'ZGUBA': isChecked })
-                        .eq('ID', tagId);
+                        .eq('ID', profileData.id);
                     
                     if (error) throw error;
                     
@@ -1090,12 +1093,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     } else {
         modalLoginBtn.addEventListener('click', () => {
-            window.location.href = `login.html?redirectId=${tagId}&source=profile`;
+            window.location.href = `login.html?redirectId=${profileData.secure_id}&source=profile`;
         });
         
         if (navStartBtn) {
             navStartBtn.innerHTML = '<i class="fa-solid fa-user"></i><span>Zaloguj</span>';
-            navStartBtn.onclick = () => { window.location.href = `login.html?redirectId=${tagId}&source=profile`; };
+            navStartBtn.onclick = () => { window.location.href = `login.html?redirectId=${profileData.secure_id}&source=profile`; };
         }
     }
 
@@ -1160,7 +1163,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const { data: scans, error } = await supabaseClient
                     .from('Nawigacja')
                     .select('*')
-                    .eq('pet_id', tagId)
+                    .eq('pet_id', profileData.id)
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
@@ -1315,7 +1318,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 // 2. Wgrywanie nowego zdjęcia
                 const compressedBlob = await compressImage(file);
-                const filename = `profile_${tagId}_${Date.now()}.jpg`;
+                const filename = `profile_${profileData.id}_${Date.now()}.jpg`;
                 const { error: uploadError } = await supabaseClient.storage
                     .from('Profil')
                     .upload(filename, compressedBlob, { contentType: 'image/jpeg' });
@@ -1340,7 +1343,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const { error: updateError } = await supabaseClient
                 .from('dogs')
                 .update(updates)
-                .eq('ID', tagId);
+                .eq('ID', profileData.id);
 
             if (updateError) throw updateError;
             

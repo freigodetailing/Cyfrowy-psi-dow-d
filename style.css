@@ -4979,7 +4979,7 @@ input:checked + .slider:before { transform: translateX(24px); }
     border-radius: 28px !important;
     box-shadow: 0 25px 60px rgba(15, 23, 42, 0.12) !important;
     max-height: 85vh !important;
-    overflow-y: auto !important;
+    overflow: visible !important;
     -webkit-overflow-scrolling: touch !important;
     padding: 2.2rem 1.4rem 1.6rem !important; /* Added space for close button and title */
     width: 100% !important;
@@ -4994,6 +4994,52 @@ input:checked + .slider:before { transform: translateX(24px); }
 .color-modal-overlay.active .color-modal {
     transform: scale(1) translateY(0) !important;
     opacity: 1 !important;
+}
+
+/* Scrollable Modals override (Settings, Edit Profile, Location History, Map Tutorial, NFC Assignment) */
+#settingsModalOverlay .color-modal,
+#colorModalOverlay .color-modal,
+.edit-modal-content,
+.history-modal,
+#historyModalOverlay .color-modal,
+#mapTutorialOverlay .color-modal,
+#nfcModalOverlay .color-modal {
+    max-height: 80vh !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(15, 23, 42, 0.15) transparent !important;
+}
+
+/* Custom scrollbars for scrollable modals */
+#settingsModalOverlay .color-modal::-webkit-scrollbar,
+#colorModalOverlay .color-modal::-webkit-scrollbar,
+.edit-modal-content::-webkit-scrollbar,
+.history-modal::-webkit-scrollbar,
+#historyModalOverlay .color-modal::-webkit-scrollbar,
+#mapTutorialOverlay .color-modal::-webkit-scrollbar,
+#nfcModalOverlay .color-modal::-webkit-scrollbar {
+    width: 6px !important;
+    display: block !important;
+}
+#settingsModalOverlay .color-modal::-webkit-scrollbar-track,
+#colorModalOverlay .color-modal::-webkit-scrollbar-track,
+.edit-modal-content::-webkit-scrollbar-track,
+.history-modal::-webkit-scrollbar-track,
+#historyModalOverlay .color-modal::-webkit-scrollbar-track,
+#mapTutorialOverlay .color-modal::-webkit-scrollbar-track,
+#nfcModalOverlay .color-modal::-webkit-scrollbar-track {
+    background: transparent !important;
+}
+#settingsModalOverlay .color-modal::-webkit-scrollbar-thumb,
+#colorModalOverlay .color-modal::-webkit-scrollbar-thumb,
+.edit-modal-content::-webkit-scrollbar-thumb,
+.history-modal::-webkit-scrollbar-thumb,
+#historyModalOverlay .color-modal::-webkit-scrollbar-thumb,
+#mapTutorialOverlay .color-modal::-webkit-scrollbar-thumb,
+#nfcModalOverlay .color-modal::-webkit-scrollbar-thumb {
+    background: rgba(15, 23, 42, 0.15) !important;
+    border-radius: 10px !important;
 }
 
 .modal-close-icon {
@@ -5549,10 +5595,10 @@ html[data-pwa='installed'] .pwa-install-btn {
 
 /* Nowe male okragle ikony na gorze modali */
 .modal-top-icon {
-    width: 65px;
-    height: 65px;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
-    margin: -45px auto 0;
+    margin: -55px auto 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -5561,16 +5607,16 @@ html[data-pwa='installed'] .pwa-install-btn {
     z-index: 2;
 }
 .modal-top-icon i {
-    font-size: 1.7rem;
+    font-size: 2.2rem;
 }
 @media (max-width: 480px) {
     .modal-top-icon {
-        width: 52px;
-        height: 52px;
-        margin: -36px auto 0;
+        width: 65px;
+        height: 65px;
+        margin: -45px auto 0;
     }
     .modal-top-icon i {
-        font-size: 1.35rem;
+        font-size: 1.8rem;
     }
 }
 

@@ -825,7 +825,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 .select('pet_id')
                 .in('user_id', userIds);
 
-            if (pairedDogs && pairedDogs.some(claim => claim.pet_id === profileData.id)) {
+            if (pairedDogs && pairedDogs.some(claim => String(claim.pet_id) === String(profileData.id))) {
                 isOwner = true;
             }
         }

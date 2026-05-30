@@ -450,8 +450,17 @@ document.addEventListener("DOMContentLoaded", async () => {
                 .eq('id', session.user.id)
                 .maybeSingle();
             
-            if (profile && profile.display_name) {
-                myDisplayName = profile.display_name;
+            if (profile) {
+                const emailPrefix = session.user.email.split('@')[0];
+                const metaName = session.user.user_metadata?.display_name;
+                
+                if (profile.display_name === emailPrefix && metaName && metaName !== emailPrefix) {
+                    myDisplayName = metaName;
+                    supabaseClient.from('profiles').update({ display_name: metaName }).eq('id', session.user.id).then();
+                } else if (profile.display_name) {
+                    myDisplayName = profile.display_name;
+                }
+                
                 if (userNameInput) userNameInput.value = myDisplayName;
             }
         };

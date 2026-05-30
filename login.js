@@ -167,11 +167,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (mode === 'login') {
                 displayNameGroup.classList.add('hidden');
+                document.getElementById('displayName').required = false;
                 submitBtn.innerHTML = 'Zaloguj się';
                 subtitle.textContent = 'Zaloguj się, aby zarządzać brelokami';
                 if(mainTitle) mainTitle.textContent = 'Dołącz do Nas';
             } else {
                 displayNameGroup.classList.remove('hidden');
+                document.getElementById('displayName').required = true;
                 submitBtn.innerHTML = 'Zarejestruj się';
                 subtitle.textContent = 'Stwórz nowe konto';
                 if(mainTitle) mainTitle.textContent = 'Dołącz do Nas';
@@ -179,6 +181,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else if (mode === 'forgot') {
             authTabsContainer.style.display = 'none';
             displayNameGroup.classList.add('hidden');
+            document.getElementById('displayName').required = false;
             passwordGroup.classList.add('hidden');
             passwordInput.required = false;
             forgotPasswordLink.classList.add('hidden');
@@ -192,6 +195,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else if (mode === 'update-password') {
             authTabsContainer.style.display = 'none';
             displayNameGroup.classList.add('hidden');
+            document.getElementById('displayName').required = false;
             document.getElementById('email').parentElement.classList.add('hidden'); // ukryj pole email
             document.getElementById('email').required = false;
             passwordGroup.classList.remove('hidden');
@@ -235,12 +239,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         try {
             if (currentMode === 'register') {
-                if (!email || !password) throw new Error("Wypełnij e-mail i hasło.");
+                if (!email || !password || !displayName) throw new Error("Wypełnij e-mail, hasło i nazwę wyświetlaną.");
                 // --- REJESTRACJA ---
                 const { data, error } = await supabaseClient.auth.signUp({
                     email,
                     password,
-                    options: { data: { display_name: displayName || email.split('@')[0] } }
+                    options: { data: { display_name: displayName } }
                 });
 
                 if (error) throw error;

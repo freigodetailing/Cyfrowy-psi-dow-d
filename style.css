@@ -659,7 +659,7 @@ body::before {
     background: var(--primary-border); /* Trik na 1px divider */
     border-radius: 20px;
     box-shadow: 0 8px 25px rgba(0,0,0,0.04);
-    border: 2px solid var(--primary-shadow-light);
+    border: 2px solid var(--primary-light);
     overflow: hidden;
     animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
     animation-delay: 0.15s;

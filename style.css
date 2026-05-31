@@ -693,12 +693,7 @@ body::before {
     color: var(--health-text);
 }
 
-.owner-icon {
-    background: var(--primary-light);
-    color: var(--primary-dark);
-}
-
-.breed-icon {
+.owner-icon, .breed-icon, .weight-icon, .chip-icon, .vet-icon {
     background: var(--primary-light);
     color: var(--primary-dark);
 }
@@ -795,7 +790,7 @@ footer {
 /* Scroll Fade Hint */
 .scroll-fade-hint {
     position: fixed;
-    bottom: 0;
+    bottom: 80px; /* Above bottom nav bar */
     left: 50%;
     transform: translateX(-50%);
     width: 100%;
@@ -812,7 +807,8 @@ footer {
     z-index: 50;
     display: flex;
     align-items: flex-end;
-    justify-content: center;
+    justify-content: flex-end; /* Moved to the right */
+    padding-right: 30px; /* Offset from right edge */
     padding-bottom: clamp(8px, 2.5vh, 20px);
     transition: opacity 0.4s ease;
 }

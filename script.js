@@ -214,8 +214,14 @@ async function fetchDogData(tagId) {
                   dogAge: data['WIEK PSA'],
                   dogGender: data['PLEC'] || 'Brak danych',
                 dogBreed: data['RASA'] || 'Brak danych',
+                dogVaccines: data['SZCZEPIENIA'] || 'Brak danych',
+                dogWeight: data['WAGA'] || 'Brak danych',
+                dogChip: data['CZIP'] || 'Brak danych',
+                dogVet: data['WETERYNARZ'] || 'Brak danych',
                 ownerName: data['IMIE PANA/I'],
                 ownerPhone: data['NR TELEFONU'],
+                ownerName2: data['IMIE PANA/I 2'],
+                ownerPhone2: data['NR TELEFONU 2'],
                 dogHealth: data['INFO'],
                 dogPhotoUrl: data['ZDJECIE'],
                 likes: data['LAJKI'],
@@ -318,21 +324,39 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    document.getElementById('dogHealth').textContent = profileData.dogHealth;
     document.getElementById('ownerName').textContent = profileData.ownerName;
 
-    // Sekcja rasy - pokazuj tylko jeśli podana
-    const breedSection = document.getElementById('breedSection');
-    const dogBreedEl = document.getElementById('dogBreed');
-    if (breedSection && dogBreedEl) {
-        const breed = profileData.dogBreed;
-        if (breed && breed !== 'Brak danych' && breed.trim() !== '') {
-            dogBreedEl.textContent = breed;
-            breedSection.classList.remove('hidden');
-        } else {
-            breedSection.classList.add('hidden');
+    const defaultHealth = "Brak danych. W razie znalezienia psa, natychmiast skontaktuj się z właścicielem lub weterynarzem.";
+
+    // Helper do wyświetlania/ukrywania sekcji
+    const toggleSection = (sectionId, textElId, value) => {
+        const section = document.getElementById(sectionId);
+        const textEl = document.getElementById(textElId);
+        if (section && textEl) {
+            if (value && value !== 'Brak danych' && value !== defaultHealth && value.trim() !== '') {
+                textEl.textContent = value;
+                section.classList.remove('hidden');
+            } else {
+                section.classList.add('hidden');
+            }
         }
-    }
+    };
+
+    // Helper do formatowania wagi
+    const formatWeight = (val) => {
+        if (!val || val === 'Brak danych' || val.trim() === '') return 'Brak danych';
+        let cleanVal = val.toString().trim().toLowerCase();
+        if (cleanVal.endsWith('kg')) return val;
+        return val + ' kg';
+    };
+
+    // Sekcja rasy i nowe sekcje
+    toggleSection('breedSection', 'dogBreed', profileData.dogBreed);
+    toggleSection('vaccineSection', 'dogVaccines', profileData.dogVaccines);
+    toggleSection('weightSection', 'dogWeight', formatWeight(profileData.dogWeight));
+    toggleSection('chipSection', 'dogChip', profileData.dogChip);
+    toggleSection('vetSection', 'dogVet', profileData.dogVet);
+    toggleSection('healthSection', 'dogHealth', profileData.dogHealth);
 
     // Obsługa plakietki płci
     const genderBadge = document.getElementById('genderBadge');
@@ -520,58 +544,101 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
     
-    // Przygotowanie linku tel i sms:
+    // Przygotowanie linków tel i sms z obsługą drugiego właściciela
     const ownerPhoneStr = profileData.ownerPhone || "Brak danych";
     const phoneClean = ownerPhoneStr.replace(/\s+/g, '');
+    const ownerPhone2Str = profileData.ownerPhone2 || "Brak danych";
+    const phone2Clean = ownerPhone2Str.replace(/\s+/g, '');
+    
+    const ownerName1 = profileData.ownerName && profileData.ownerName !== 'Brak danych' ? profileData.ownerName : 'Właściciel 1';
+    const ownerName2 = profileData.ownerName2 && profileData.ownerName2 !== 'Brak danych' ? profileData.ownerName2 : 'Właściciel 2';
+
+    const hasPhone1 = phoneClean !== 'Brakdanych' && phoneClean !== 'Brak danych' && phoneClean.length > 3;
+    const hasPhone2 = phone2Clean !== 'Brakdanych' && phone2Clean !== 'Brak danych' && phone2Clean.length > 3;
+
     const phoneBtn = document.getElementById('phoneBtn');
     const smsBtn = document.getElementById('smsBtn');
-    
-    if (phoneClean !== 'Brakdanych' && phoneClean !== 'Brak danych') {
-        phoneBtn.href = `tel:${phoneClean}`;
-        
-        // Różne telefony różnie interpretują linki SMS, '?' działa na Androidzie, a '&' na iOS
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        const separator = isIOS ? '&' : '?';
+    const actionButtons = document.querySelector('.action-buttons');
 
-        // Wiadomość SMS z lokalizacją
-        const baseSmsMessage = "Hej! Znalazłem Twojego pupila jednak nie widzę nigdzie właściciela w pobliżu. Jeśli pupil się zgubił, to skontaktujmy się! Chętnie pomogę!";
+    if (!hasPhone1 && !hasPhone2) {
+        if (actionButtons) actionButtons.style.display = 'none';
+    } else {
+        const contactPickerModal = document.getElementById('contactPickerModal');
+        const btnOwner1 = document.getElementById('contactOwner1Btn');
+        const btnOwner2 = document.getElementById('contactOwner2Btn');
+        const btnCancelContact = document.getElementById('cancelContactBtn');
         
-        // Uruchamiamy geolokalizację dopiero po kliknięciu w przycisk
-        smsBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const originalContent = smsBtn.innerHTML;
+        if (document.getElementById('contactOwner1Name')) document.getElementById('contactOwner1Name').textContent = ownerName1;
+        if (document.getElementById('contactOwner2Name')) document.getElementById('contactOwner2Name').textContent = ownerName2;
+
+        let pendingAction = null; // 'call' or 'sms'
+
+        const executeAction = (targetPhone) => {
+            if (!targetPhone) return;
+            contactPickerModal.classList.add('hidden');
             
-            if ("geolocation" in navigator) {
-                // Zmieniamy tekst guzika na czas szukania lokalizacji
+            if (pendingAction === 'call') {
+                window.location.href = `tel:${targetPhone}`;
+            } else if (pendingAction === 'sms') {
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                const separator = isIOS ? '&' : '?';
+                const baseSmsMessage = "Hej! Znalazłem Twojego pupila jednak nie widzę nigdzie właściciela w pobliżu. Jeśli pupil się zgubił, to skontaktujmy się! Chętnie pomogę!";
+                
+                const originalContent = smsBtn.innerHTML;
                 smsBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Pobieram lokalizację...';
                 
-                // Próba pobrania lokalizacji z większym timeoutem (15 sekund)
-                navigator.geolocation.getCurrentPosition((position) => {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    const mapLink = `https://maps.google.com/?q=${lat},${lng}`;
-                    const fullMessage = `${baseSmsMessage}\n\nMoja aktualna lokalizacja: ${mapLink}`;
-                    
+                if ("geolocation" in navigator) {
+                    navigator.geolocation.getCurrentPosition((position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        const mapLink = `https://maps.google.com/?q=${lat},${lng}`;
+                        const fullMessage = `${baseSmsMessage}\n\nMoja aktualna lokalizacja: ${mapLink}`;
+                        smsBtn.innerHTML = originalContent;
+                        window.location.href = `sms:${targetPhone}${separator}body=${encodeURIComponent(fullMessage)}`;
+                    }, (error) => {
+                        console.log("Geolocation error:", error);
+                        smsBtn.innerHTML = originalContent;
+                        window.location.href = `sms:${targetPhone}${separator}body=${encodeURIComponent(baseSmsMessage)}`;
+                    }, { timeout: 15000, enableHighAccuracy: true, maximumAge: 10000 });
+                } else {
                     smsBtn.innerHTML = originalContent;
-                    window.location.href = `sms:${phoneClean}${separator}body=${encodeURIComponent(fullMessage)}`;
-                }, (error) => {
-                    console.log("Geolocation error or denied:", error);
-                    smsBtn.innerHTML = originalContent;
-                    // Nawet jak jest błąd lub brak zgody, otwieramy SMS bez lokalizacji po chwili
-                    window.location.href = `sms:${phoneClean}${separator}body=${encodeURIComponent(baseSmsMessage)}`;
-                }, { 
-                    timeout: 15000, 
-                    enableHighAccuracy: true,
-                    maximumAge: 10000 // Możemy użyć pozycji sprzed 10s, jeśli jest dostępna
-                });
-            } else {
-                window.location.href = `sms:${phoneClean}${separator}body=${encodeURIComponent(baseSmsMessage)}`;
+                    window.location.href = `sms:${targetPhone}${separator}body=${encodeURIComponent(baseSmsMessage)}`;
+                }
             }
-        });
-    } else {
-        // Ukryj całe sekcje kontaktowe, jeśli brakuje numeru
-        const actionButtons = document.querySelector('.action-buttons');
-        if (actionButtons) actionButtons.style.display = 'none';
+        };
+
+        if (btnOwner1) {
+            btnOwner1.onclick = () => executeAction(phoneClean);
+        }
+        if (btnOwner2) {
+            btnOwner2.onclick = () => executeAction(phone2Clean);
+        }
+        if (btnCancelContact) {
+            btnCancelContact.onclick = () => {
+                contactPickerModal.classList.add('hidden');
+            };
+        }
+
+        const triggerFlow = (e, type) => {
+            e.preventDefault();
+            pendingAction = type;
+            if (hasPhone1 && hasPhone2) {
+                contactPickerModal.classList.remove('hidden');
+            } else if (hasPhone1) {
+                executeAction(phoneClean);
+            } else if (hasPhone2) {
+                executeAction(phone2Clean);
+            }
+        };
+
+        if (phoneBtn) {
+            phoneBtn.removeAttribute('href');
+            phoneBtn.onclick = (e) => triggerFlow(e, 'call');
+        }
+        if (smsBtn) {
+            smsBtn.removeAttribute('href');
+            smsBtn.onclick = (e) => triggerFlow(e, 'sms');
+        }
     }
 
     // Obsługa znaków szczególnych (jeśli istnieją)
@@ -1114,11 +1181,24 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById('editDogAge').value = profileData.dogAge !== "Brak danych" ? profileData.dogAge : "";
         document.getElementById('editDogGender').value = profileData.dogGender || "Brak danych";
         document.getElementById('editDogBreed').value = profileData.dogBreed !== "Brak danych" ? profileData.dogBreed : "";
+        document.getElementById('editDogVaccines').value = profileData.dogVaccines !== "Brak danych" ? profileData.dogVaccines : "";
+        
+        let editWeight = profileData.dogWeight !== "Brak danych" ? profileData.dogWeight : "";
+        if (editWeight) editWeight = editWeight.toString().replace(/kg/i, '').trim();
+        document.getElementById('editDogWeight').value = editWeight;
+        
+        document.getElementById('editDogChip').value = profileData.dogChip !== "Brak danych" ? profileData.dogChip : "";
+        document.getElementById('editDogVet').value = profileData.dogVet !== "Brak danych" ? profileData.dogVet : "";
         // Nie czyścimy opisu jeśli ma domyślny długi string dla bezpieczeństwa, sprawdzamy
         const defaultHealth = "Brak danych. W razie znalezienia psa, natychmiast skontaktuj się z właścicielem lub weterynarzem.";
         document.getElementById('editDogHealth').value = profileData.dogHealth !== defaultHealth ? profileData.dogHealth : "";
         document.getElementById('editOwnerName').value = profileData.ownerName !== "Brak danych" ? profileData.ownerName : "";
         document.getElementById('editOwnerPhone').value = profileData.ownerPhone !== "Brak danych" ? profileData.ownerPhone : "";
+        
+        const oN2 = document.getElementById('editOwnerName2');
+        if(oN2) oN2.value = profileData.ownerName2 && profileData.ownerName2 !== "Brak danych" ? profileData.ownerName2 : "";
+        const oP2 = document.getElementById('editOwnerPhone2');
+        if(oP2) oP2.value = profileData.ownerPhone2 && profileData.ownerPhone2 !== "Brak danych" ? profileData.ownerPhone2 : "";
         document.getElementById('editImagePreview').src = document.getElementById('dogImage').src;
 
         editModalOverlay.classList.add('active');
@@ -1334,9 +1414,15 @@ document.addEventListener("DOMContentLoaded", async () => {
                 'WIEK PSA': document.getElementById('editDogAge').value || 'Brak danych',
                 'PLEC': document.getElementById('editDogGender').value || 'Brak danych',
                 'RASA': document.getElementById('editDogBreed').value || 'Brak danych',
+                'SZCZEPIENIA': document.getElementById('editDogVaccines').value || 'Brak danych',
+                'WAGA': document.getElementById('editDogWeight').value || 'Brak danych',
+                'CZIP': document.getElementById('editDogChip').value || 'Brak danych',
+                'WETERYNARZ': document.getElementById('editDogVet').value || 'Brak danych',
                 'INFO': document.getElementById('editDogHealth').value || 'Brak danych',
                 'IMIE PANA/I': document.getElementById('editOwnerName').value || 'Brak danych',
                 'NR TELEFONU': document.getElementById('editOwnerPhone').value || 'Brak danych',
+                'IMIE PANA/I 2': document.getElementById('editOwnerName2') ? document.getElementById('editOwnerName2').value || 'Brak danych' : 'Brak danych',
+                'NR TELEFONU 2': document.getElementById('editOwnerPhone2') ? document.getElementById('editOwnerPhone2').value || 'Brak danych' : 'Brak danych',
                 'ZDJECIE': photoUrl
             };
 
@@ -1426,12 +1512,8 @@ async function checkOwnershipForMap(dogData) {
 
     // Nasłuchuj na scroll - pojawia/znika reaktywnie
     window.addEventListener('scroll', checkScroll, { passive: true });
-
-    // Sprawdź od razu (DOMContentLoaded mogło już minąć)
-    checkScroll();
-
-    // Sprawdź ponownie po załadowaniu async contentu (zdjęcia, dane z Supabase)
-    setTimeout(checkScroll, 800);
-    setTimeout(checkScroll, 2000);
+    window.addEventListener('resize', checkScroll, { passive: true });
+    
+    // Inicjalne sprawdzenie po załadowaniu treści
+    setTimeout(checkScroll, 1000);
 })();
-

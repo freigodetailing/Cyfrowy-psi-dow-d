@@ -391,8 +391,12 @@
                 </div>
 
                 <div class="edit-group">
-                    <label for="editDogChip">Nr Czipa / Tatuażu</label>
-                    <input type="tel" id="editDogChip" class="form-input" maxlength="15" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="np. 939000012345678">
+                    <label for="editDogChip">Czy zwierzę jest zaczipowane?</label>
+                    <select id="editDogChip" class="form-input">
+                        <option value="Tak">Tak, jest zaczipowane</option>
+                        <option value="Nie">Nie jest zaczipowane</option>
+                        <option value="Brak danych">Nie chcę podawać</option>
+                    </select>
                 </div>
 
                 <div class="edit-group">

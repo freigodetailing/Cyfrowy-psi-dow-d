@@ -1187,7 +1187,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (editWeight) editWeight = editWeight.toString().replace(/kg/i, '').trim();
         document.getElementById('editDogWeight').value = editWeight;
         
-        document.getElementById('editDogChip').value = profileData.dogChip !== "Brak danych" ? profileData.dogChip : "";
+        let chipVal = profileData.dogChip;
+        if (chipVal !== "Nie" && chipVal !== "Brak danych" && chipVal && chipVal.trim() !== "") {
+            document.getElementById('editDogChip').value = "Tak";
+        } else {
+            document.getElementById('editDogChip').value = chipVal === "Nie" ? "Nie" : "Brak danych";
+        }
         document.getElementById('editDogVet').value = profileData.dogVet !== "Brak danych" ? profileData.dogVet : "";
         // Nie czyścimy opisu jeśli ma domyślny długi string dla bezpieczeństwa, sprawdzamy
         const defaultHealth = "Brak danych. W razie znalezienia psa, natychmiast skontaktuj się z właścicielem lub weterynarzem.";

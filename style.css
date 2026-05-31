@@ -3384,6 +3384,10 @@ input:checked + .slider:before { transform: translateX(24px); }
     animation: modalPop 0.3s cubic-bezier(0.17, 0.89, 0.32, 1.28);
 }
 
+#contactPickerModal .modal-content {
+    border: 2px solid var(--primary-light);
+}
+
 @keyframes modalPop {
     from { transform: scale(0.8); opacity: 0; }
     to { transform: scale(1); opacity: 1; }

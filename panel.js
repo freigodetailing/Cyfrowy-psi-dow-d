@@ -1214,9 +1214,10 @@ nfcModalOverlay.addEventListener('click', (e) => {
                 
                 // Jeśli przed dodaniem nie było żadnej karty - uruchom tour (niezależnie od ciasteczek)!
                 if (hadNoPets) {
-                    startGuidedTour();
+                    startGuidedTour(dogDbId);
                 } else {
-                    showResultModal(true, "Sukces!", "Brelok został pomyślnie przypisany do Twojego konta.");
+                    // Natychmiastowe przekierowanie z odpaleniem edycji
+                    window.location.href = `index.html?id=${dogDbId}#edit`;
                 }
             } catch (err) {
                 console.error("Assignment error:", err);
@@ -1318,7 +1319,7 @@ const tourSteps = [
     {
         targetId: null, // Srodek ekranu
         title: "Sukces! Brelok dodany.",
-        text: "Twój pierwszy brelok został pomyślnie przypisany do konta! Pozwól, że w 3 krótkich krokach pokażemy Ci, jak w pełni wykorzystać jego możliwości.",
+        text: "Twój pierwszy brelok został pomyślnie przypisany do konta! Pozwól, że w 3 krótkich krokach pokażemy Ci, jak to działa.",
         pos: 'center',
         icon: 'fa-wand-magic-sparkles',
         bgColor: '#e6f9ed',
@@ -1327,18 +1328,18 @@ const tourSteps = [
     },
     {
         targetId: 'petsList',
-        title: "1. Uzupełnij profil",
-        text: "Kliknij w podświetloną kartę, aby otworzyć profil pupila. Następnie wejdź w <strong>Ustawienia</strong> (ikona zębatki) i użyj przycisku <strong>Edytuj profil</strong>, by uaktywnić i nadać życie profilowi.",
+        title: "Karta Pupila",
+        text: "Tutaj widzisz swoje breloki. W każdej chwili możesz kliknąć w kartę pupila, by wejść na jego profil i zarządzać jego danymi.",
         pos: 'bottom',
-        icon: 'fa-camera-retro',
+        icon: 'fa-address-card',
         bgColor: '#ebf3fe',
         iconColor: '#3b82f6',
         btnText: 'Dalej'
     },
     {
         targetId: 'navSettingsBtn',
-        title: "2. Powiadomienia",
-        text: "Wejdź w <strong>Ustawienia</strong> i włącz <strong>Powiadomienia Push</strong>. Dzięki temu od razu dostaniesz alert na telefon (wraz z lokalizacją GPS), gdy tylko ktoś zeskanuje brelok.",
+        title: "Powiadomienia Push",
+        text: "W <strong>Ustawieniach</strong> warto włączyć Powiadomienia. Dzięki nim od razu dostaniesz alert na telefon, gdy tylko ktoś zeskanuje zgubiony brelok.",
         pos: 'top',
         icon: 'fa-bell',
         bgColor: '#fdf0fe',
@@ -1347,20 +1348,22 @@ const tourSteps = [
     },
     {
         targetId: null, // Srodek ekranu
-        title: "3. Próbny skan",
-        text: "Sprawdź, jak to działa! Upewnij się, że telefon jest odblokowany i przyłóż brelok do jego górnej krawędzi. Zobaczysz, jak profil wyświetla się na ekranie znalazcy.",
+        title: "Edycja Profilu",
+        text: "Teraz automatycznie przeniesiemy Cię na stronę Twojego pupila. Uzupełnij jego dane, dodaj zdjęcie i koniecznie podaj <strong>nr telefonu</strong>, aby brelok spełniał swoją funkcję!",
         pos: 'center',
-        icon: 'fa-mobile-screen',
+        icon: 'fa-user-pen',
         bgColor: '#fef8e7',
         iconColor: '#f59e0b',
-        btnText: 'Zakończ'
+        btnText: 'Rozpocznij edycję'
     }
 ];
 
 let currentTourStep = 0;
+let tourAssignedDogId = null;
 
-function startGuidedTour() {
+function startGuidedTour(dogDbId) {
     currentTourStep = 0;
+    tourAssignedDogId = dogDbId;
     const overlay = document.getElementById('tourOverlay');
     if (!overlay) return;
     
@@ -1383,6 +1386,9 @@ function stopGuidedTour() {
 function showTourStep(index) {
     if (index >= tourSteps.length) {
         stopGuidedTour();
+        if (tourAssignedDogId) {
+            window.location.href = `index.html?id=${tourAssignedDogId}#edit`;
+        }
         return;
     }
     

@@ -1319,12 +1319,22 @@ const tourSteps = [
     {
         targetId: null, // Srodek ekranu
         title: "Sukces! Brelok dodany.",
-        text: "Twój pierwszy brelok został pomyślnie przypisany do konta! Pozwól, że w 3 krótkich krokach pokażemy Ci, jak to działa.",
+        text: "Twój pierwszy brelok został pomyślnie przypisany do konta! Pozwól, że w 4 krótkich krokach pokażemy Ci, jak to działa.",
         pos: 'center',
         icon: 'fa-wand-magic-sparkles',
         bgColor: '#e6f9ed',
         iconColor: '#22c55e',
         btnText: 'Zaczynamy'
+    },
+    {
+        targetId: null, // Srodek ekranu
+        title: "Jak to działa?",
+        text: "Twój brelok to wirtualny dowód tożsamości pupila. Znalazca przykłada do niego swój telefon, odczytuje dane zwierzaka i jednym kliknięciem może do Ciebie zadzwonić!",
+        pos: 'center',
+        icon: 'fa-shield-dog',
+        bgColor: '#e0f2fe',
+        iconColor: '#0284c7',
+        btnText: 'Rozumiem!'
     },
     {
         targetId: 'petsList',
@@ -1409,7 +1419,7 @@ function showTourStep(index) {
     icon.style.color = step.iconColor;
     
     if (index === tourSteps.length - 1) {
-        nextBtn.innerHTML = `${step.btnText} <i class="fa-solid fa-check"></i>`;
+        nextBtn.innerHTML = step.btnText;
     } else {
         nextBtn.innerHTML = `${step.btnText} <i class="fa-solid fa-arrow-right"></i>`;
     }

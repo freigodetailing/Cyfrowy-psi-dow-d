@@ -1419,15 +1419,15 @@ document.addEventListener("DOMContentLoaded", async () => {
                 'WIEK PSA': document.getElementById('editDogAge').value || 'Brak danych',
                 'PLEC': document.getElementById('editDogGender').value || 'Brak danych',
                 'RASA': document.getElementById('editDogBreed').value || 'Brak danych',
-                'SZCZEPIENIA': document.getElementById('editDogVaccines').value || 'Brak danych',
-                'WAGA': document.getElementById('editDogWeight').value || 'Brak danych',
-                'CZIP': document.getElementById('editDogChip').value || 'Brak danych',
-                'WETERYNARZ': document.getElementById('editDogVet').value || 'Brak danych',
+                'SZCZEPIENIA': document.getElementById('editDogVaccines').value || null,
+                'WAGA': document.getElementById('editDogWeight').value || null,
+                'CZIP': document.getElementById('editDogChip').value || null,
+                'WETERYNARZ': document.getElementById('editDogVet').value || null,
                 'INFO': document.getElementById('editDogHealth').value || 'Brak danych',
                 'IMIE PANA/I': document.getElementById('editOwnerName').value || 'Brak danych',
                 'NR TELEFONU': document.getElementById('editOwnerPhone').value || 'Brak danych',
-                'IMIE PANA/I 2': document.getElementById('editOwnerName2') ? document.getElementById('editOwnerName2').value || 'Brak danych' : 'Brak danych',
-                'NR TELEFONU 2': document.getElementById('editOwnerPhone2') ? document.getElementById('editOwnerPhone2').value || 'Brak danych' : 'Brak danych',
+                'IMIE PANA/I 2': document.getElementById('editOwnerName2') ? document.getElementById('editOwnerName2').value || null : null,
+                'NR TELEFONU 2': document.getElementById('editOwnerPhone2') ? document.getElementById('editOwnerPhone2').value || null : null,
                 'ZDJECIE': photoUrl
             };
 

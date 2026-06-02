@@ -718,7 +718,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                                     <h4>${displayName}</h4>
                                     ${statusHtml}
                                 </div>
-                                <span>Przejdź do wizytówki <i class="fa-solid fa-arrow-right"></i></span>
+                                <span>Przejdź do profilu <i class="fa-solid fa-arrow-right"></i></span>
                             </div>
                             <div class="pet-card-actions">
                                 <button class="btn-unpair pet-card-unpair-btn" title="Odłącz pupila">

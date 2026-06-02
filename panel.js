@@ -1329,7 +1329,7 @@ const tourSteps = [
     {
         targetId: null, // Srodek ekranu
         title: "Jak to działa?",
-        text: "Twój brelok to wirtualny dowód tożsamości pupila. Znalazca przykłada do niego swój telefon, odczytuje dane zwierzaka i jednym kliknięciem może do Ciebie zadzwonić!",
+        text: "Twój brelok to cyfrowy identyfikator pupila. Znalazca po prostu zbliża go do telefonu, aby otworzyć profil zwierzaka i od razu się z Tobą skontaktować. Masz pełną kontrolę nad swoimi danymi.",
         pos: 'center',
         icon: 'fa-shield-dog',
         bgColor: '#e0f2fe',

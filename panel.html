@@ -127,8 +127,8 @@
                             <div class="dash-step">
                                 <div class="dash-step-num">2</div>
                                 <div class="dash-step-text">
-                                    <strong>Wróć i przypisz brelok</strong>
-                                    <span>wpisując kod lub zbliżając brelok do telefonu</span>
+                                    <strong>Sprawdź skrzynkę mailową</strong>
+                                    <span>Wciśnij guzik poniżej "Wpisz ID" oraz wpisz podany przez nas unikalny kod ID</span>
                                 </div>
                             </div>
                             <div class="dash-step">
@@ -171,10 +171,10 @@
                 
                 <!-- Center Main Action Button (Skanuj) -->
                 <div class="nav-item center-item">
-                    <a href="javascript:void(0)" class="center-action-btn assign-nfc-btn" title="Skanuj brelok" aria-label="Skanuj">
+                    <a href="javascript:void(0)" class="center-action-btn assign-nfc-btn" title="Wpisz ID" aria-label="Wpisz ID">
                         <i class="fa-solid fa-qrcode"></i>
                     </a>
-                    <span>Skanuj</span>
+                    <span>Wpisz ID</span>
                 </div>
                 
                 <a href="https://dowodpupila.pl/pages/contact" target="_blank" class="nav-item" id="navHelpBtn">
@@ -429,16 +429,16 @@
     <div id="nfcModalOverlay" class="color-modal-overlay">
         <div class="color-modal" style="text-align: center; padding: 2rem 1.5rem;">
             <button id="cancelNfcBtn" class="modal-close-icon"><i class="fa-solid fa-xmark"></i></button>
-            <h3 class="modal-title">Przypisz brelok</h3>
+            <h3 class="modal-title">Przypisz swojego pupila do konta</h3>
 
             <div id="assignInitialView">
                 <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">
-                    Wpisz kod ID swojego pupila z dołączonej wiadomości na poczcie elektronicznej na podany adres w trakcie zakupu, aby połączyć brelok.
+                    Wpisz kod ID pupila, który wysłaliśmy w wiadomości e-mail na adres podany podczas zakupu, aby przypisać brelok.
                 </p>
 
                 <div class="form-group" style="text-align: left; margin-bottom: 1.5rem;">
                     <label for="manualPetId" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">
-                        <i class="fa-solid fa-hashtag"></i> Kod ID Breloka
+                        Kod ID Breloka
                     </label>
                     <input type="text" id="manualPetId" class="form-input" placeholder="np. 12345" style="border-radius: 12px; margin-top: 0.4rem;">
                 </div>

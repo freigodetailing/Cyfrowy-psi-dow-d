@@ -227,7 +227,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (navHelpBtn) {
             navHelpBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-                window.open('https://dowodpupila.pl/pages/contact', '_blank');
+                window.open('https://dowodpupila.pl/contact', '_blank');
             });
         }
 
